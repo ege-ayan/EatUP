@@ -50,7 +50,6 @@ export function useRegister() {
         form.reset();
       } else {
         if (response.errors) {
-          // Handle field-specific errors
           response.errors.forEach((err) => {
             form.setError(err.field as keyof RegisterFormData, {
               message: err.message,

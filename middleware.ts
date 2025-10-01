@@ -23,6 +23,12 @@ export async function middleware(request: NextRequest) {
       const loginUrl = new URL("/auth/login", request.url);
       return NextResponse.redirect(loginUrl);
     }
+
+    if (isAuth && pathname === "/") {
+      const homeUrl = new URL("/home", request.url);
+      return NextResponse.redirect(homeUrl);
+    }
+
     return NextResponse.next();
   } catch (error) {
     console.error("Invalid JWT token:", error);

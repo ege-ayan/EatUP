@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Registration API error:", error);
 
-    if (error instanceof Error && error.message === "User already exists") {
+    if (error instanceof Error && error.message === "Kullanıcı zaten mevcut") {
       return NextResponse.json(
         { success: false, error: "Kullanıcı zaten mevcut" },
         { status: 409 }

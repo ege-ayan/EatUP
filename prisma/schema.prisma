@@ -10,11 +10,82 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  surname   String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  surname      String
+  email        String   @unique
+  password     String
+  role         UserRole @default(STUDENT)
+  organization  Organization? @relation("OrganizationOwner")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  bookings     Booking[]
+}
+
+enum UserRole {
+  STUDENT
+  OWNER
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model Organization {
+  id           String   @id @default(cuid())
+  name         String
+  location     String
+  locationName String
+  category     String
+  description  String?
+  image        String?
+  phone        String?
+  email        String?
+  website      String?
+  isActive     Boolean  @default(true)
+  ownerId      String   @unique
+  owner        User     @relation("OrganizationOwner", fields: [ownerId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  offerings    Offering[]
+}
+
+model Offering {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  image        String?
+  category     String
+  price        Float
+  originalPrice Float?
+  stock        Int
+  isAvailable  Boolean  @default(true)
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  bookings     Booking[]
+}
+
+model Booking {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offeringId  String
+  offering    Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  quantity    Int      @default(1)
+  status      BookingStatus @default(PENDING)
+  pickupTime  DateTime?
+  notes       String?
+  totalPrice  Float    
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
