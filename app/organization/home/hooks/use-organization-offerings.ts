@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { offeringsService } from "@/app/organization/services/offerings-service";
+import { offeringsService } from "@/app/organization/home/services/offerings-service";
 
 export const useOrganizationOfferings = (organizationId: string) => {
   return useQuery({

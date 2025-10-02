@@ -40,8 +40,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Offering } from "@/lib/offerings";
-import { offeringsService } from "@/app/organization/services/offerings-service";
+import { offeringsService } from "@/app/organization/home/services/offerings-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import Swal from "sweetalert2";
 
 interface OfferingsTableProps {
@@ -77,10 +78,10 @@ export function OfferingsTable({ offerings, isLoading }: OfferingsTableProps) {
     if (result.isConfirmed) {
       try {
         await deleteOfferingMutation.mutateAsync(id);
-        Swal.fire("Silindi!", "Ürün başarıyla silindi.", "success");
+        toast.success("Ürün başarıyla silindi");
       } catch (error) {
         console.error("Delete error:", error);
-        Swal.fire("Hata!", "Ürün silinirken bir hata oluştu.", "error");
+        toast.error("Ürün silinirken bir hata oluştu");
       }
     }
   };

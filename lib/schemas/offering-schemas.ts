@@ -3,18 +3,14 @@ import { z } from "zod";
 export const addOfferingSchema = z.object({
   name: z.string().min(1, "İsim gereklidir").max(100, "İsim çok uzun"),
   description: z.string().optional(),
-  price: z.number().min(0, "Fiyat 0'dan büyük olmalıdır"),
+  price: z.number().min(1, "Fiyat 1'den büyük olmalıdır"),
   originalPrice: z
     .number()
-    .min(0, "Orijinal fiyat 0'dan büyük olmalıdır")
+    .min(1, "Orijinal fiyat 1'den büyük olmalıdır")
     .optional(),
-  stock: z.number().int().min(0, "Stok miktarı 0'dan küçük olamaz"),
+  stock: z.number().int().min(1, "Stok miktarı en az 1 olmalıdır"),
   categoryId: z.string().min(1, "Kategori seçimi gereklidir"),
-  image: z
-    .string()
-    .url("Geçerli bir resim URL'i giriniz")
-    .optional()
-    .or(z.literal("")),
+  image: z.url("Geçerli bir resim URL'i giriniz").optional().or(z.literal("")),
 });
 
 export const addOfferingFormSchema = addOfferingSchema
@@ -23,7 +19,6 @@ export const addOfferingFormSchema = addOfferingSchema
   })
   .refine(
     (data) => {
-      // If originalPrice is provided, it should be greater than or equal to price
       if (data.originalPrice !== undefined) {
         return data.originalPrice >= data.price;
       }
