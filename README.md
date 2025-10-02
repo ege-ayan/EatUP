@@ -1,0 +1,8 @@
+- make sure node.js is installed
+- clone repository
+- create .env file at the root
+- populate it according to .env.example
+- run npm i
+- run npx prisma generate
+- run npm run dev
+- it will run on port 3000
