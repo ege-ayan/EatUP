@@ -7,7 +7,7 @@ import Navbar from "@/components/common/navbar";
 import { CategoryFilter } from "./components/category-filter";
 import { OfferingCard } from "./components/offering-card";
 import { OfferingCardShimmer } from "./components/loading-shimmer";
-import { useOfferings } from "./hooks/use-offerings";
+import { useOfferings, useCategories } from "./hooks/use-offerings";
 import { Offering } from "./services/offerings-service";
 
 export default function HomePage() {
@@ -23,6 +23,14 @@ export default function HomePage() {
     hasNextPage,
     isFetchingNextPage,
   } = useOfferings(selectedCategory);
+
+  const { data: categoriesResponse } = useCategories();
+  const categories = categoriesResponse?.categories || [];
+
+  // Find the selected category name for display
+  const selectedCategoryName = selectedCategory
+    ? categories.find((cat) => cat.id === selectedCategory)?.name
+    : undefined;
 
   const handleBookOffering = (offering: Offering) => {
     console.log("Booking offering:", offering);
@@ -53,8 +61,8 @@ export default function HomePage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-xl font-semibold text-gray-900">
-              {selectedCategory
-                ? `${selectedCategory} Yemekleri`
+              {selectedCategoryName
+                ? `${selectedCategoryName} Yemekleri`
                 : "Tüm Yemekler"}
             </h3>
             {!isLoading && (

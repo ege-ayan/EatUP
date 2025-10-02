@@ -3,8 +3,8 @@ import { CategoryFilterShimmer } from "./loading-shimmer";
 import { useCategories } from "../hooks/use-offerings";
 
 interface CategoryFilterProps {
-  selectedCategory?: string;
-  onCategoryChange: (category: string | undefined) => void;
+  selectedCategory?: string; // This is now a category ID
+  onCategoryChange: (categoryId: string | undefined) => void;
 }
 
 export const CategoryFilter = ({
@@ -40,13 +40,13 @@ export const CategoryFilter = ({
 
       {categories.map((category) => (
         <Button
-          key={category}
-          variant={selectedCategory === category ? "default" : "outline"}
+          key={category.id}
+          variant={selectedCategory === category.id ? "default" : "outline"}
           size="sm"
-          onClick={() => onCategoryChange(category)}
+          onClick={() => onCategoryChange(category.id)}
           className="flex-shrink-0 rounded-full"
         >
-          {category}
+          {category.name}
         </Button>
       ))}
     </div>

@@ -6,7 +6,7 @@ import { prisma } from "./prisma";
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = "30d";
 
-export async function login(email: string, password: string) {
+export async function validateCredentials(email: string, password: string) {
   try {
     const user = await prisma.user.findUnique({
       where: { email },
@@ -22,11 +22,33 @@ export async function login(email: string, password: string) {
       throw new Error("Geçersiz e-posta veya şifre");
     }
 
+    return {
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        surname: user.surname,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+      },
+    };
+  } catch (error) {
+    console.error("Kimlik doğrulama hatası:", error);
+    throw error;
+  }
+}
+
+export async function login(email: string, password: string) {
+  try {
+    const result = await validateCredentials(email, password);
+
     const token = await new SignJWT({
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-      surname: user.surname,
+      userId: result.user.id,
+      email: result.user.email,
+      name: result.user.name,
+      surname: result.user.surname,
+      role: result.user.role,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
@@ -42,16 +64,7 @@ export async function login(email: string, password: string) {
       path: "/",
     });
 
-    return {
-      success: true,
-      user: {
-        id: user.id,
-        name: user.name,
-        surname: user.surname,
-        email: user.email,
-        createdAt: user.createdAt,
-      },
-    };
+    return result;
   } catch (error) {
     console.error("Giriş hatası:", error);
     throw error;
@@ -130,6 +143,7 @@ export async function getCurrentUser() {
         name: true,
         surname: true,
         email: true,
+        role: true,
         createdAt: true,
         updatedAt: true,
       },

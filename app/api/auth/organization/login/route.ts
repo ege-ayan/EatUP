@@ -16,29 +16,27 @@ export async function POST(request: NextRequest) {
 
     const { email, password } = validationResult.data;
 
-    // First validate credentials and check user type
     const validationResultAuth = await validateCredentials(email, password);
 
     if (
       validationResultAuth.success &&
       validationResultAuth.user &&
-      validationResultAuth.user.role !== "CUSTOMER"
+      validationResultAuth.user.role !== "ORGANIZATION"
     ) {
       return NextResponse.json(
         {
           success: false,
-          error: "Bu giriş sadece müşteri hesapları için geçerlidir",
+          error: "Bu giriş sadece organizasyon hesapları için geçerlidir",
         },
         { status: 403 }
       );
     }
 
-    // Only set cookie if user is a valid customer
     const result = await login(email, password);
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("API giriş hatası:", error);
+    console.error("Organizasyon giriş API hatası:", error);
     if (error instanceof Error) {
       return NextResponse.json(
         { success: false, error: error.message },

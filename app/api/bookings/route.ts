@@ -8,16 +8,17 @@ export async function GET(request: NextRequest) {
     const user = await getCurrentUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || undefined;
-    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 20;
-    const offset = searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : 0;
+    const limit = searchParams.get("limit")
+      ? parseInt(searchParams.get("limit")!)
+      : 20;
+    const offset = searchParams.get("offset")
+      ? parseInt(searchParams.get("offset")!)
+      : 0;
 
     const result = await getBookings(
       { status, userId: user.id },
@@ -40,10 +41,7 @@ export async function POST(request: NextRequest) {
     const user = await getCurrentUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -89,4 +87,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

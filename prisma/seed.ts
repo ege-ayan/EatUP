@@ -5,6 +5,54 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding database...");
 
+  console.log("🧹 Clearing existing data...");
+  await prisma.booking.deleteMany();
+  await prisma.offering.deleteMany();
+  await prisma.organization.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
+
+  const categories = await Promise.all([
+    prisma.category.create({
+      data: {
+        name: "Kahvaltı",
+        description: "Sabah kahvaltısı ürünleri ve yiyecekleri",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Çorba",
+        description: "Sıcak çorbalar ve başlangıç yemekleri",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Ana Yemek",
+        description: "Ana yemekler ve öğün yemekleri",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "İçecek",
+        description: "Sıcak ve soğuk içecekler",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Tatlı",
+        description: "Tatlılar ve desertler",
+      },
+    }),
+    prisma.category.create({
+      data: {
+        name: "Atıştırmalık",
+        description: "Ara öğün atıştırmalıkları",
+      },
+    }),
+  ]);
+
+  console.log("✅ Categories created:", categories.length);
+
   // Create sample organizations (ODTÜ locations)
   const organizations = await Promise.all([
     prisma.organization.create({
@@ -23,8 +71,8 @@ async function main() {
             surname: "Yıldırım",
             email: "hasan@simitsarayi.com",
             password:
-              "$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi", // password
-            role: "OWNER",
+              "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
+            role: "ORGANIZATION",
           },
         },
       },
@@ -48,8 +96,8 @@ async function main() {
             surname: "Koç",
             email: "zeynep@corbaeviodtu.com",
             password:
-              "$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi", // password
-            role: "OWNER",
+              "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
+            role: "ORGANIZATION",
           },
         },
       },
@@ -73,8 +121,8 @@ async function main() {
             surname: "Şahin",
             email: "emre@kahvekosesiodtu.com",
             password:
-              "$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi", // password
-            role: "OWNER",
+              "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
+            role: "ORGANIZATION",
           },
         },
       },
@@ -95,7 +143,7 @@ async function main() {
         description: "Taze pişmiş susamlı simit",
         image:
           "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=400&h=300&fit=crop",
-        category: "Kahvaltı",
+        categoryId: categories[0].id, // Kahvaltı
         price: 8.0,
         originalPrice: 12.0,
         stock: 25,
@@ -108,7 +156,7 @@ async function main() {
         description: "Peynirli taze poğaça",
         image:
           "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop",
-        category: "Kahvaltı",
+        categoryId: categories[0].id, // Kahvaltı
         price: 6.0,
         originalPrice: 10.0,
         stock: 20,
@@ -121,7 +169,7 @@ async function main() {
         description: "Geleneksel Türk kahvesi",
         image:
           "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&h=300&fit=crop",
-        category: "İçecek",
+        categoryId: categories[3].id, // İçecek
         price: 12.0,
         originalPrice: 18.0,
         stock: 30,
@@ -136,7 +184,7 @@ async function main() {
         description: "Sıcak mercimek çorbası",
         image:
           "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&h=300&fit=crop",
-        category: "Çorba",
+        categoryId: categories[1].id, // Çorba
         price: 15.0,
         originalPrice: 22.0,
         stock: 18,
@@ -149,7 +197,7 @@ async function main() {
         description: "Geleneksel ezogelin çorbası",
         image:
           "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?w=400&h=300&fit=crop",
-        category: "Çorba",
+        categoryId: categories[1].id, // Çorba
         price: 16.0,
         originalPrice: 24.0,
         stock: 15,
@@ -162,7 +210,7 @@ async function main() {
         description: "Tavuklu pilav ve yoğurt",
         image:
           "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&h=300&fit=crop",
-        category: "Ana Yemek",
+        categoryId: categories[2].id, // Ana Yemek
         price: 28.0,
         originalPrice: 35.0,
         stock: 12,
@@ -177,7 +225,7 @@ async function main() {
         description: "Sıcak americano kahve",
         image:
           "https://images.unsplash.com/photo-1459755486867-b55449bb39ff?w=400&h=300&fit=crop",
-        category: "İçecek",
+        categoryId: categories[3].id, // İçecek
         price: 14.0,
         originalPrice: 20.0,
         stock: 25,
@@ -190,7 +238,7 @@ async function main() {
         description: "Taze çikolatalı kurabiye",
         image:
           "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&h=300&fit=crop",
-        category: "Tatlı",
+        categoryId: categories[4].id, // Tatlı
         price: 10.0,
         originalPrice: 15.0,
         stock: 22,
@@ -203,7 +251,7 @@ async function main() {
         description: "Patates kızartması üzerine malzemeler",
         image:
           "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400&h=300&fit=crop",
-        category: "Atıştırmalık",
+        categoryId: categories[5].id, // Atıştırmalık
         price: 20.0,
         originalPrice: 28.0,
         stock: 16,
@@ -220,8 +268,8 @@ async function main() {
       name: "Deniz",
       surname: "Yılmaz",
       email: "deniz.yilmaz@odtu.edu.tr",
-      password: "$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi", // password
-      role: "STUDENT",
+      password: "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
+      role: "CUSTOMER",
     },
   });
 

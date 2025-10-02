@@ -3,16 +3,16 @@ import { cookies } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-export async function isAuthenticated() {
+export async function getCurrentUserRole() {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth-token")?.value;
 
   if (!token) {
-    return false;
+    return null;
   }
   const { payload } = await jwtVerify(
     token,
     new TextEncoder().encode(JWT_SECRET)
   );
-  return payload;
+  return payload.role;
 }

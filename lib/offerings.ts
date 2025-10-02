@@ -1,16 +1,30 @@
 import { prisma } from "./prisma";
 
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Offering {
   id: string;
   name: string;
   description?: string;
   image?: string;
-  category: string;
   price: number;
   originalPrice?: number;
   stock: number;
   isAvailable: boolean;
   organizationId: string;
+  categoryId: string;
+  category: {
+    id: string;
+    name: string;
+    description?: string;
+  };
   organization: {
     id: string;
     name: string;
@@ -36,12 +50,12 @@ export interface OfferingsResponse {
 
 export interface CategoriesResponse {
   success: boolean;
-  categories: string[];
+  categories: Category[];
   error?: string;
 }
 
 export interface OfferingsFilter {
-  category?: string;
+  categoryId?: string;
   organizationId?: string;
 }
 
@@ -61,14 +75,14 @@ export interface OfferingsResult {
 }
 
 export interface CategoriesResult {
-  categories: string[];
+  categories: Category[];
 }
 
 export async function getOfferings(
   filter: OfferingsFilter = {},
   pagination: PaginationOptions = {}
 ): Promise<OfferingsResult> {
-  const { category, organizationId } = filter;
+  const { categoryId, organizationId } = filter;
   const { limit = 20, offset = 0 } = pagination;
 
   const where: Record<string, unknown> = {
@@ -76,8 +90,8 @@ export async function getOfferings(
     stock: { gt: 0 },
   };
 
-  if (category) {
-    where.category = category;
+  if (categoryId) {
+    where.categoryId = categoryId;
   }
 
   if (organizationId) {
@@ -87,6 +101,13 @@ export async function getOfferings(
   const offerings = await prisma.offering.findMany({
     where,
     include: {
+      category: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+        },
+      },
       organization: {
         select: {
           id: true,
@@ -110,12 +131,17 @@ export async function getOfferings(
       name: offering.name,
       description: offering.description || undefined,
       image: offering.image || undefined,
-      category: offering.category,
       price: offering.price,
       originalPrice: offering.originalPrice || undefined,
       stock: offering.stock,
       isAvailable: offering.isAvailable,
       organizationId: offering.organizationId,
+      categoryId: offering.categoryId,
+      category: {
+        id: offering.category.id,
+        name: offering.category.name,
+        description: offering.category.description || undefined,
+      },
       organization: {
         id: offering.organization.id,
         name: offering.organization.name,
@@ -136,28 +162,26 @@ export async function getOfferings(
 }
 
 /**
- * Get all unique categories from available offerings
+ * Get all active categories
  */
 export async function getCategories(): Promise<CategoriesResult> {
-  const categories = await prisma.offering.findMany({
+  const categories = await prisma.category.findMany({
     where: {
-      isAvailable: true,
-      stock: { gt: 0 },
+      isActive: true,
     },
-    select: {
-      category: true,
-    },
-    distinct: ["category"],
     orderBy: {
-      category: "asc",
+      name: "asc",
     },
   });
 
-  const uniqueCategories = Array.from(
-    new Set(categories.map((item) => item.category))
-  );
-
   return {
-    categories: uniqueCategories,
+    categories: categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      description: category.description || undefined,
+      isActive: category.isActive,
+      createdAt: category.createdAt.toISOString(),
+      updatedAt: category.updatedAt.toISOString(),
+    })),
   };
 }

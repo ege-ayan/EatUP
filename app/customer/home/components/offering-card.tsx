@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useState } from "react";
 import {
   MapPin,
   Package,
@@ -17,6 +18,8 @@ interface OfferingCardProps {
 }
 
 export const OfferingCard = ({ offering, onBook }: OfferingCardProps) => {
+  const [imageError, setImageError] = useState(false);
+
   const discountPercentage = offering.originalPrice
     ? Math.round(
         ((offering.originalPrice - offering.price) / offering.originalPrice) *
@@ -50,13 +53,14 @@ export const OfferingCard = ({ offering, onBook }: OfferingCardProps) => {
 
         {/* Image */}
         <div className="relative h-56 bg-gray-100">
-          {offering.image ? (
+          {offering.image && !imageError ? (
             <Image
               src={offering.image}
               alt={offering.name}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              onError={() => setImageError(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -77,7 +81,7 @@ export const OfferingCard = ({ offering, onBook }: OfferingCardProps) => {
               variant="outline"
               className="text-xs font-medium px-2 py-1 border-gray-300 text-gray-600"
             >
-              {offering.category}
+              {offering.category.name}
             </Badge>
             <div className="flex items-center text-xs text-gray-500">
               <MapPin className="w-3 h-3 mr-1" />

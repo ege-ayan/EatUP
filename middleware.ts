@@ -1,32 +1,63 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isAuthenticated } from "./lib/guards";
+import { getCurrentUserRole } from "./lib/guards";
+import { UserRole } from "./lib/interfaces/user";
 
-const publicRoutes = [
-  "/auth/login",
-  "/auth/register",
+const publicApiRoutes = [
   "/api/auth/login",
+  "/api/auth/organization/login",
   "/api/auth/register",
   "/api/auth/logout",
+  "/api/auth/me",
 ];
+
+const authPageRoutes = [
+  "/auth/login",
+  "/auth/login/organization",
+  "/auth/register",
+];
+
+const customerHomeRoutes = "/customer/home";
+const organizationHomeRoutes = "/organization/home";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (publicRoutes.some((route) => pathname.startsWith(route))) {
+  if (publicApiRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
   try {
-    const isAuth = await isAuthenticated();
-    if (!isAuth) {
+    const role = await getCurrentUserRole();
+
+    if (!role) {
+      if (authPageRoutes.some((route) => pathname.startsWith(route))) {
+        return NextResponse.next();
+      }
       const loginUrl = new URL("/auth/login", request.url);
       return NextResponse.redirect(loginUrl);
     }
 
-    if (isAuth && pathname === "/") {
-      const homeUrl = new URL("/home", request.url);
-      return NextResponse.redirect(homeUrl);
+    if (authPageRoutes.some((route) => pathname.startsWith(route))) {
+      if (role === UserRole.CUSTOMER) {
+        const homeUrl = new URL(customerHomeRoutes, request.url);
+        return NextResponse.redirect(homeUrl);
+      }
+      if (role === UserRole.ORGANIZATION) {
+        const homeUrl = new URL(organizationHomeRoutes, request.url);
+        return NextResponse.redirect(homeUrl);
+      }
+    }
+
+    if (pathname === "/") {
+      if (role === UserRole.CUSTOMER) {
+        const homeUrl = new URL(customerHomeRoutes, request.url);
+        return NextResponse.redirect(homeUrl);
+      }
+      if (role === UserRole.ORGANIZATION) {
+        const homeUrl = new URL(organizationHomeRoutes, request.url);
+        return NextResponse.redirect(homeUrl);
+      }
     }
 
     return NextResponse.next();

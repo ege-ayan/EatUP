@@ -6,16 +6,16 @@ import {
 } from "../services/offerings-service";
 
 export const useOfferings = (
-  category?: string,
+  categoryId?: string,
   organizationId?: string,
   limit = 20
 ) => {
   return useInfiniteQuery<OfferingsResponse>({
-    queryKey: ["offerings", category, organizationId, limit],
+    queryKey: ["offerings", categoryId, organizationId, limit],
     initialPageParam: 0,
     queryFn: ({ pageParam = 0 }) =>
       offeringsService.getOfferings(
-        category,
+        categoryId,
         organizationId,
         limit,
         pageParam as number

@@ -9,13 +9,13 @@ export type { Offering, OfferingsResponse, CategoriesResponse };
 
 export const offeringsService = {
   async getOfferings(
-    category?: string,
+    categoryId?: string,
     organizationId?: string,
     limit = 20,
     offset = 0
   ): Promise<OfferingsResponse> {
     const params = new URLSearchParams();
-    if (category) params.append("category", category);
+    if (categoryId) params.append("categoryId", categoryId);
     if (organizationId) params.append("organizationId", organizationId);
     params.append("limit", limit.toString());
     params.append("offset", offset.toString());
@@ -27,9 +27,7 @@ export const offeringsService = {
   },
 
   async getCategories(): Promise<CategoriesResponse> {
-    const response = await axios.get<CategoriesResponse>(
-      "/api/offerings/categories"
-    );
+    const response = await axios.get<CategoriesResponse>("/api/categories");
     return response.data;
   },
 };

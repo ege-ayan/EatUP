@@ -33,11 +33,23 @@ export default function Navbar() {
     return `${name.charAt(0)}${surname.charAt(0)}`.toUpperCase();
   };
 
+  const getHomeLink = () => {
+    if (!user) return "/home";
+    return user.role === "CUSTOMER" ? "/customer/home" : "/organization/home";
+  };
+
+  const getBookingsLink = () => {
+    if (!user) return "/bookings";
+    return user.role === "CUSTOMER"
+      ? "/customer/bookings"
+      : "/organization/bookings";
+  };
+
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 ">
         <div className="flex items-center justify-between h-16">
-          <Link href="/home" className="flex items-center space-x-2">
+          <Link href={getHomeLink()} className="flex items-center space-x-2">
             <span className="text-3xl font-bold text-green-800">
               Eat<span className="text-orange-400">UP</span>
             </span>
@@ -61,7 +73,7 @@ export default function Navbar() {
                 >
                   <DropdownMenuItem
                     className="cursor-pointer p-3 rounded-md hover:bg-green-50 transition-colors duration-150 focus:bg-green-50 focus:text-green-700"
-                    onClick={() => router.push("/bookings")}
+                    onClick={() => router.push(getBookingsLink())}
                   >
                     <User className="w-4 h-4 mr-3 text-green-600" />
                     <span className="font-medium">Rezervasyonlarım</span>
