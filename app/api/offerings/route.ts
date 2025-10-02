@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOfferings } from "@/lib/offerings";
 import { prisma } from "@/lib/prisma";
 import { addOfferingApiSchema } from "@/lib/schemas/offering-schemas";
+import { deleteImage } from "@/lib/supabase";
 import { z } from "zod";
 
 export async function GET(request: NextRequest) {
@@ -166,7 +167,6 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Check if offering exists
     const existingOffering = await prisma.offering.findUnique({
       where: { id },
     });
@@ -178,7 +178,14 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Delete the offering
+    if (existingOffering.image) {
+      try {
+        await deleteImage(existingOffering.image);
+      } catch (imageError) {
+        console.error("Failed to delete image from bucket:", imageError);
+      }
+    }
+
     await prisma.offering.delete({
       where: { id },
     });

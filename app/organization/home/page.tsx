@@ -7,6 +7,8 @@ import { AddOfferingModal } from "./components/add-offering-modal";
 import Navbar from "@/components/common/navbar";
 import { Button } from "@/components/ui/button";
 import { Package, Plus } from "lucide-react";
+import { toast } from "sonner";
+import Swal from "sweetalert2";
 
 export default function OrganizationHomePage() {
   const user = useUserStore((state) => state.user);
@@ -14,15 +16,39 @@ export default function OrganizationHomePage() {
   // For now, we'll use a hardcoded organization ID since we don't have
   // the organization relationship set up in the user store
   // In a real app, you'd get this from the user.organizationId
-  const organizationId = user?.id || ""; // This is a placeholder
+  const organizationId = user?.id || "";
 
   const {
     data: offeringsResponse,
     isLoading,
     error,
+    deleteOffering,
   } = useOrganizationOfferings(organizationId);
 
   const offerings = offeringsResponse?.offerings || [];
+
+  const handleDeleteOffering = async (id: string, name: string) => {
+    const result = await Swal.fire({
+      title: "Ürünü silmek istediğinize emin misiniz?",
+      text: `"${name}" ürünü kalıcı olarak silinecektir.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Evet, sil",
+      cancelButtonText: "İptal",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteOffering(id);
+        toast.success("Ürün başarıyla silindi");
+      } catch (error) {
+        console.error("Delete error:", error);
+        toast.error("Ürün silinirken bir hata oluştu");
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -70,7 +96,11 @@ export default function OrganizationHomePage() {
               </Button>
             </div>
           ) : (
-            <OfferingsTable offerings={offerings} isLoading={isLoading} />
+            <OfferingsTable
+              offerings={offerings}
+              isLoading={isLoading}
+              onDeleteOffering={handleDeleteOffering}
+            />
           )}
         </div>
       </main>

@@ -8,6 +8,7 @@ import { useDropzone } from "react-dropzone";
 import { X, Image as ImageIcon } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -60,7 +61,6 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
 
   const categories = categoriesResponse?.categories || [];
 
-  // Reset upload error when modal opens
   useEffect(() => {
     if (open) {
       setUploadError(null);
@@ -84,7 +84,6 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
     mutationFn: async (data: AddOfferingFormData) => {
       let imageUrl = "";
 
-      // Upload image if provided (optional - don't fail if bucket doesn't exist)
       if (data.imageFile) {
         setIsUploading(true);
         try {
@@ -97,14 +96,12 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
           setUploadError(
             "Resim yüklenemedi, ürün görseli olmadan devam edilecek"
           );
-          // Don't throw error - continue without image
           imageUrl = "";
         } finally {
           setIsUploading(false);
         }
       }
 
-      // Create offering
       const offeringData = {
         name: data.name,
         description: data.description || "",
@@ -126,6 +123,7 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
       form.reset();
       setUploadedImageUrl(null);
       setUploadError(null);
+      toast.success("Ürün başarıyla eklendi");
     },
     onError: (error: AxiosError) => {
       console.error("Failed to create offering:", error);
@@ -138,6 +136,9 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
           "API Error:",
           (error.response.data as { error: string }).error
         );
+        toast.error((error.response.data as { error: string }).error);
+      } else {
+        toast.error("Ürün eklenirken bir hata oluştu");
       }
     },
   });
@@ -147,7 +148,7 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
     if (file) {
       form.setValue("imageFile", file);
       setUploadedImageUrl(URL.createObjectURL(file));
-      setUploadError(null); // Reset any previous upload error
+      setUploadError(null);
     }
   };
 
@@ -163,7 +164,7 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
       "image/*": [".jpeg", ".jpg", ".png", ".webp"],
     },
     multiple: false,
-    maxSize: 5 * 1024 * 1024, // 5MB
+    maxSize: 5 * 1024 * 1024,
   });
 
   const onSubmit = (data: AddOfferingFormData) => {

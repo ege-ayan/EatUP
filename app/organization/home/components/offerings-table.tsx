@@ -40,51 +40,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Offering } from "@/lib/offerings";
-import { offeringsService } from "@/app/organization/home/services/offerings-service";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import Swal from "sweetalert2";
 
 interface OfferingsTableProps {
   offerings: Offering[];
   isLoading?: boolean;
+  onDeleteOffering: (id: string, name: string) => Promise<void>;
 }
 
-export function OfferingsTable({ offerings, isLoading }: OfferingsTableProps) {
+export function OfferingsTable({
+  offerings,
+  isLoading,
+  onDeleteOffering,
+}: OfferingsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const queryClient = useQueryClient();
-
-  const deleteOfferingMutation = useMutation({
-    mutationFn: (id: string) => offeringsService.deleteOffering(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organization-offerings"] });
-    },
-  });
-
-  const handleDeleteOffering = async (id: string, name: string) => {
-    const result = await Swal.fire({
-      title: "Ürünü silmek istediğinize emin misiniz?",
-      text: `"${name}" ürünü kalıcı olarak silinecektir.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Evet, sil",
-      cancelButtonText: "İptal",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await deleteOfferingMutation.mutateAsync(id);
-        toast.success("Ürün başarıyla silindi");
-      } catch (error) {
-        console.error("Delete error:", error);
-        toast.error("Ürün silinirken bir hata oluştu");
-      }
-    }
-  };
 
   const columns: ColumnDef<Offering>[] = [
     {
@@ -278,7 +248,7 @@ export function OfferingsTable({ offerings, isLoading }: OfferingsTableProps) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
-                onClick={() => handleDeleteOffering(offering.id, offering.name)}
+                onClick={() => onDeleteOffering(offering.id, offering.name)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Sil
