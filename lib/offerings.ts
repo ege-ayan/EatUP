@@ -17,6 +17,8 @@ export interface Offering {
   price: number;
   originalPrice?: number;
   stock: number;
+  bookingDuration?: number;
+  expirationDate?: string;
   isAvailable: boolean;
   organizationId: string;
   categoryId: string;
@@ -134,6 +136,8 @@ export async function getOfferings(
       price: offering.price,
       originalPrice: offering.originalPrice || undefined,
       stock: offering.stock,
+      bookingDuration: offering.bookingDuration || undefined,
+      expirationDate: offering.expirationDate?.toISOString() || undefined,
       isAvailable: offering.isAvailable,
       organizationId: offering.organizationId,
       categoryId: offering.categoryId,

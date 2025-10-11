@@ -5,10 +5,42 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDropzone } from "react-dropzone";
-import { X, Image as ImageIcon } from "lucide-react";
+import { X, Image as ImageIcon, Calendar } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+// Custom styles for react-datepicker
+const datePickerStyles = `
+  .react-datepicker-custom .react-datepicker__header {
+    background-color: #f3f4f6;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .react-datepicker-custom .react-datepicker__current-month,
+  .react-datepicker-custom .react-datepicker-time__header {
+    color: #374151;
+    font-weight: 600;
+  }
+
+  .react-datepicker-custom .react-datepicker__day--selected {
+    background-color: #3b82f6;
+  }
+
+  .react-datepicker-custom .react-datepicker__day:hover {
+    background-color: #dbeafe;
+  }
+
+  .react-datepicker-custom .react-datepicker__time-container {
+    border-left: 1px solid #e5e7eb;
+  }
+
+  .react-datepicker-custom .react-datepicker-time__header {
+    background-color: #f9fafb;
+  }
+`;
 
 import {
   Dialog,
@@ -19,6 +51,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Form,
   FormControl,
@@ -75,10 +112,14 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
       price: 0,
       originalPrice: 0,
       stock: 0,
+      bookingDuration: 30,
+      expirationDate: "",
       categoryId: "",
       imageFile: undefined,
     },
   });
+
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const createOfferingMutation = useMutation({
     mutationFn: async (data: AddOfferingFormData) => {
@@ -109,6 +150,8 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
         ...(data.originalPrice &&
           data.originalPrice > 0 && { originalPrice: data.originalPrice }),
         stock: data.stock,
+        bookingDuration: data.bookingDuration,
+        expirationDate: data.expirationDate,
         categoryId: data.categoryId,
         image: imageUrl || "",
         organizationId: user?.id || "",
@@ -121,6 +164,7 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
       queryClient.invalidateQueries({ queryKey: ["organization-offerings"] });
       setOpen(false);
       form.reset();
+      setSelectedDate(null);
       setUploadedImageUrl(null);
       setUploadError(null);
       toast.success("Ürün başarıyla eklendi");
@@ -174,68 +218,28 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
   const isLoading = createOfferingMutation.isPending || isUploading;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Yeni Ürün Ekle</DialogTitle>
-          <DialogDescription>
-            Ürün bilgilerini doldurarak yeni bir ürün ekleyin.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: datePickerStyles }} />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Yeni Ürün Ekle</DialogTitle>
+            <DialogDescription>
+              Ürün bilgilerini doldurarak yeni bir ürün ekleyin.
+            </DialogDescription>
+          </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ürün Adı *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ürün adını giriniz" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Açıklama</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Ürün açıklaması (opsiyonel)"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="price"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fiyat (₺) *</FormLabel>
+                    <FormLabel>Ürün Adı *</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value) || 0)
-                        }
-                      />
+                      <Input placeholder="Ürün adını giriniz" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -244,144 +248,265 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
 
               <FormField
                 control={form.control}
-                name="originalPrice"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Orijinal Fiyat (₺)</FormLabel>
+                    <FormLabel>Açıklama</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00"
+                      <Textarea
+                        placeholder="Ürün açıklaması (opsiyonel)"
+                        className="resize-none"
                         {...field}
-                        onChange={(e) =>
-                          field.onChange(
-                            e.target.value
-                              ? parseFloat(e.target.value)
-                              : undefined
-                          )
-                        }
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="stock"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stok Miktarı *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 0)
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fiyat (₺) *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Kategori *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Kategori seçiniz" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="originalPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Orijinal Fiyat (₺)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value
+                                ? parseFloat(e.target.value)
+                                : undefined
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <FormLabel>Ürün Görseli (Opsiyonel)</FormLabel>
-              {uploadError && (
-                <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
-                  ⚠️ {uploadError}
-                </div>
-              )}
-              {!uploadedImageUrl ? (
-                <div
-                  {...getRootProps()}
-                  className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                    isDragActive
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-300 hover:border-primary"
-                  }`}
-                >
-                  <input {...getInputProps()} />
-                  <ImageIcon className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600">
-                    {isDragActive
-                      ? "Resmi buraya bırakın"
-                      : "Resmi sürükleyip bırakın veya tıklayın"}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    PNG, JPG, JPEG, WebP (max 5MB)
-                  </p>
-                </div>
-              ) : (
-                <div className="relative">
-                  <Image
-                    src={uploadedImageUrl!}
-                    alt="Uploaded preview"
-                    width={320}
-                    height={128}
-                    className="w-full h-32 object-cover rounded-lg"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={removeImage}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="bookingDuration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bekleme Süresi (dk) *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="480"
+                          placeholder="30"
+                          className="w-full"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value) || 30)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="expirationDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Son Geçerlilik Tarihi *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={`w-full pl-3 text-left font-normal ${
+                                !selectedDate && "text-muted-foreground"
+                              }`}
+                            >
+                              {selectedDate ? (
+                                selectedDate.toLocaleString("tr-TR")
+                              ) : (
+                                <span>Tarih seçin</span>
+                              )}
+                              <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <DatePicker
+                            selected={selectedDate}
+                            onChange={(date) => {
+                              setSelectedDate(date);
+                              field.onChange(date ? date.toISOString() : "");
+                            }}
+                            showTimeSelect
+                            timeFormat="HH:mm"
+                            timeIntervals={15}
+                            dateFormat="Pp"
+                            minDate={new Date()}
+                            inline
+                            className="react-datepicker-custom"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="stock"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Stok Miktarı *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          placeholder="1"
+                          className="w-full"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value) || 0)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Kategori *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Kategori seçiniz" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <FormLabel>Ürün Görseli (Opsiyonel)</FormLabel>
+                {uploadError && (
+                  <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
+                    ⚠️ {uploadError}
+                  </div>
+                )}
+                {!uploadedImageUrl ? (
+                  <div
+                    {...getRootProps()}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                      isDragActive
+                        ? "border-primary bg-primary/5"
+                        : "border-gray-300 hover:border-primary"
+                    }`}
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
+                    <input {...getInputProps()} />
+                    <ImageIcon className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600">
+                      {isDragActive
+                        ? "Resmi buraya bırakın"
+                        : "Resmi sürükleyip bırakın veya tıklayın"}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      PNG, JPG, JPEG, WebP (max 5MB)
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Image
+                      src={uploadedImageUrl!}
+                      alt="Uploaded preview"
+                      width={320}
+                      height={128}
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={removeImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={isLoading}
-              >
-                İptal
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Kaydediliyor..." : "Ürün Ekle"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  disabled={isLoading}
+                >
+                  İptal
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Kaydediliyor..." : "Ürün Ekle"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

@@ -9,6 +9,5 @@ export const useCategories = () => {
       const response = await axios.get<CategoriesResponse>("/api/categories");
       return response.data;
     },
-    staleTime: 1000 * 60 * 10, // Cache for 10 minutes
   });
 };

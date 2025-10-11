@@ -26,7 +26,6 @@ export const useOfferings = (
       }
       return undefined;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
@@ -34,6 +33,5 @@ export const useCategories = () => {
   return useQuery<CategoriesResponse>({
     queryKey: ["categories"],
     queryFn: () => offeringsService.getCategories(),
-    staleTime: 1000 * 60 * 30,
   });
 };

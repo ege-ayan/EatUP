@@ -8,7 +8,6 @@ export const useOrganizationOfferings = (organizationId: string) => {
     queryKey: ["organization-offerings", organizationId],
     queryFn: () => offeringsService.getOrganizationOfferings(organizationId),
     enabled: !!organizationId,
-    staleTime: 1000 * 60 * 5,
   });
 
   const deleteOfferingMutation = useMutation({

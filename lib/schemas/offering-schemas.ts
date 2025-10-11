@@ -9,6 +9,18 @@ export const addOfferingSchema = z.object({
     .min(1, "Orijinal fiyat 1'den büyük olmalıdır")
     .optional(),
   stock: z.number().int().min(1, "Stok miktarı en az 1 olmalıdır"),
+  bookingDuration: z
+    .number()
+    .int()
+    .min(1, "Bekleme süresi en az 1 dakika olmalıdır")
+    .max(480, "Bekleme süresi en fazla 8 saat olabilir"),
+  expirationDate: z
+    .string()
+    .min(1, "Son geçerlilik tarihi gereklidir")
+    .refine((val) => {
+      const date = new Date(val);
+      return !isNaN(date.getTime()) && date > new Date();
+    }, "Son geçerlilik tarihi geçerli bir gelecek tarihi olmalıdır"),
   categoryId: z.string().min(1, "Kategori seçimi gereklidir"),
   image: z.url("Geçerli bir resim URL'i giriniz").optional().or(z.literal("")),
 });
