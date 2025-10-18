@@ -39,7 +39,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Offering } from "@/lib/offerings";
+import { Prisma } from "@/lib/generated/prisma";
+
+type Offering = Prisma.OfferingGetPayload<{
+  include: {
+    category: true;
+    organization: true;
+  };
+}>;
 
 interface OfferingsTableProps {
   offerings: Offering[];

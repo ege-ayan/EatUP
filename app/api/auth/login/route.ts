@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
 
     const { email, password } = validationResult.data;
 
-    // First validate credentials and check user type
     const validationResultAuth = await validateCredentials(email, password);
 
     if (
@@ -33,7 +32,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Only set cookie if user is a valid customer
     const result = await login(email, password);
 
     return NextResponse.json(result);

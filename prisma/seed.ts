@@ -147,6 +147,8 @@ async function main() {
         price: 8.0,
         originalPrice: 12.0,
         stock: 25,
+        bookingDuration: 15,
+        expirationDate: new Date("2025-11-11T14:00:00.000Z"), // Tomorrow at 2 PM
         organizationId: organizations[0].id,
       },
     }),
@@ -160,6 +162,8 @@ async function main() {
         price: 6.0,
         originalPrice: 10.0,
         stock: 20,
+        bookingDuration: 20,
+        expirationDate: new Date("2025-11-11T16:00:00.000Z"), // Tomorrow at 4 PM
         organizationId: organizations[0].id,
       },
     }),
@@ -173,6 +177,8 @@ async function main() {
         price: 12.0,
         originalPrice: 18.0,
         stock: 30,
+        bookingDuration: 10,
+        expirationDate: new Date("2025-11-12T12:00:00.000Z"), // Day after tomorrow at noon
         organizationId: organizations[0].id,
       },
     }),
@@ -188,6 +194,8 @@ async function main() {
         price: 15.0,
         originalPrice: 22.0,
         stock: 18,
+        bookingDuration: 25,
+        expirationDate: new Date("2025-11-11T13:00:00.000Z"), // Tomorrow at 1 PM
         organizationId: organizations[1].id,
       },
     }),
@@ -201,6 +209,8 @@ async function main() {
         price: 16.0,
         originalPrice: 24.0,
         stock: 15,
+        bookingDuration: 30,
+        expirationDate: new Date("2025-11-11T15:00:00.000Z"), // Tomorrow at 3 PM
         organizationId: organizations[1].id,
       },
     }),
@@ -214,6 +224,8 @@ async function main() {
         price: 28.0,
         originalPrice: 35.0,
         stock: 12,
+        bookingDuration: 45,
+        expirationDate: new Date("2025-11-12T14:00:00.000Z"), // Day after tomorrow at 2 PM
         organizationId: organizations[1].id,
       },
     }),
@@ -229,6 +241,8 @@ async function main() {
         price: 14.0,
         originalPrice: 20.0,
         stock: 25,
+        bookingDuration: 5,
+        expirationDate: new Date("2025-11-13T18:00:00.000Z"), // 3 days from now at 6 PM
         organizationId: organizations[2].id,
       },
     }),
@@ -242,6 +256,8 @@ async function main() {
         price: 10.0,
         originalPrice: 15.0,
         stock: 22,
+        bookingDuration: 15,
+        expirationDate: new Date("2025-11-12T17:00:00.000Z"), // Day after tomorrow at 5 PM
         organizationId: organizations[2].id,
       },
     }),
@@ -255,6 +271,8 @@ async function main() {
         price: 20.0,
         originalPrice: 28.0,
         stock: 16,
+        bookingDuration: 35,
+        expirationDate: new Date("2025-11-11T20:00:00.000Z"), // Tomorrow at 8 PM
         organizationId: organizations[2].id,
       },
     }),

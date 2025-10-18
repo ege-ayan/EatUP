@@ -17,7 +17,7 @@ export const CategoryFilter = ({
     return <CategoryFilterShimmer />;
   }
 
-  if (error || !categoriesResponse?.success) {
+  if (error || !categoriesResponse) {
     return (
       <div className="text-center text-red-500 py-4">
         Kategoriler yüklenemedi

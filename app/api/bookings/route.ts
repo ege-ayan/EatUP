@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBookings, createBooking } from "@/lib/bookings";
 import { getCurrentUser } from "@/lib/auth";
 
-// GET /api/bookings - Get user's bookings
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -35,7 +34,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/bookings - Create a new booking
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();

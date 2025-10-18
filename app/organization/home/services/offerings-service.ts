@@ -1,17 +1,34 @@
 import axios from "axios";
-import type {
-  Offering,
-  OfferingsResponse,
-  CategoriesResponse,
-} from "@/lib/offerings";
+import { Prisma } from "@/lib/generated/prisma";
 
-export type { Offering, OfferingsResponse, CategoriesResponse };
+type Offering = Prisma.OfferingGetPayload<{
+  include: {
+    category: true;
+    organization: true;
+  };
+}>;
+
+type OfferingsResult = {
+  offerings: Offering[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+};
+
+type CategoriesResult = {
+  categories: Prisma.CategoryGetPayload<Record<string, never>>[];
+};
+
+export type { Offering, OfferingsResult, CategoriesResult };
 
 export const offeringsService = {
   async getOrganizationOfferings(
     organizationId: string
-  ): Promise<OfferingsResponse> {
-    const response = await axios.get<OfferingsResponse>(
+  ): Promise<OfferingsResult> {
+    const response = await axios.get<OfferingsResult>(
       `/api/offerings/organization/${organizationId}`
     );
     return response.data;

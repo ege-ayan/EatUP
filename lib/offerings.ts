@@ -1,60 +1,13 @@
 import { prisma } from "./prisma";
+import { Prisma } from "./generated/prisma";
 
-export interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Offering {
-  id: string;
-  name: string;
-  description?: string;
-  image?: string;
-  price: number;
-  originalPrice?: number;
-  stock: number;
-  bookingDuration?: number;
-  expirationDate?: string;
-  isAvailable: boolean;
-  organizationId: string;
-  categoryId: string;
-  category: {
-    id: string;
-    name: string;
-    description?: string;
+type Category = Prisma.CategoryGetPayload<Record<string, never>>;
+type Offering = Prisma.OfferingGetPayload<{
+  include: {
+    category: true;
+    organization: true;
   };
-  organization: {
-    id: string;
-    name: string;
-    locationName: string;
-    category: string;
-    image?: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface OfferingsResponse {
-  success: boolean;
-  offerings: Offering[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-    hasMore: boolean;
-  };
-  error?: string;
-}
-
-export interface CategoriesResponse {
-  success: boolean;
-  categories: Category[];
-  error?: string;
-}
+}>;
 
 export interface OfferingsFilter {
   categoryId?: string;
@@ -103,22 +56,8 @@ export async function getOfferings(
   const offerings = await prisma.offering.findMany({
     where,
     include: {
-      category: {
-        select: {
-          id: true,
-          name: true,
-          description: true,
-        },
-      },
-      organization: {
-        select: {
-          id: true,
-          name: true,
-          locationName: true,
-          category: true,
-          image: true,
-        },
-      },
+      category: true,
+      organization: true,
     },
     orderBy: [{ createdAt: "desc" }, { name: "asc" }],
     take: limit,
@@ -128,34 +67,7 @@ export async function getOfferings(
   const totalCount = await prisma.offering.count({ where });
 
   return {
-    offerings: offerings.map((offering) => ({
-      id: offering.id,
-      name: offering.name,
-      description: offering.description || undefined,
-      image: offering.image || undefined,
-      price: offering.price,
-      originalPrice: offering.originalPrice || undefined,
-      stock: offering.stock,
-      bookingDuration: offering.bookingDuration || undefined,
-      expirationDate: offering.expirationDate?.toISOString() || undefined,
-      isAvailable: offering.isAvailable,
-      organizationId: offering.organizationId,
-      categoryId: offering.categoryId,
-      category: {
-        id: offering.category.id,
-        name: offering.category.name,
-        description: offering.category.description || undefined,
-      },
-      organization: {
-        id: offering.organization.id,
-        name: offering.organization.name,
-        locationName: offering.organization.locationName,
-        category: offering.organization.category,
-        image: offering.organization.image || undefined,
-      },
-      createdAt: offering.createdAt.toISOString(),
-      updatedAt: offering.updatedAt.toISOString(),
-    })),
+    offerings,
     pagination: {
       total: totalCount,
       limit,
@@ -165,9 +77,6 @@ export async function getOfferings(
   };
 }
 
-/**
- * Get all active categories
- */
 export async function getCategories(): Promise<CategoriesResult> {
   const categories = await prisma.category.findMany({
     where: {
@@ -179,13 +88,6 @@ export async function getCategories(): Promise<CategoriesResult> {
   });
 
   return {
-    categories: categories.map((category) => ({
-      id: category.id,
-      name: category.name,
-      description: category.description || undefined,
-      isActive: category.isActive,
-      createdAt: category.createdAt.toISOString(),
-      updatedAt: category.updatedAt.toISOString(),
-    })),
+    categories,
   };
 }

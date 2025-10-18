@@ -1,36 +1,15 @@
 import { prisma } from "./prisma";
+import { Prisma, BookingStatus } from "./generated/prisma";
 
-export interface Booking {
-  id: string;
-  userId: string;
-  offeringId: string;
-  quantity: number;
-  status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
-  pickupTime?: string;
-  notes?: string;
-  totalPrice: number;
-  createdAt: string;
-  updatedAt: string;
-  offering: {
-    id: string;
-    name: string;
-    organization: {
-      id: string;
-      name: string;
-      locationName: string;
+type Booking = Prisma.BookingGetPayload<{
+  include: {
+    offering: {
+      include: {
+        organization: true;
+      };
     };
   };
-}
-
-export interface BookingsResponse {
-  bookings: Booking[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-    hasMore: boolean;
-  };
-}
+}>;
 
 export interface BookingsFilter {
   status?: string;
@@ -73,16 +52,8 @@ export async function getBookings(
     where,
     include: {
       offering: {
-        select: {
-          id: true,
-          name: true,
-          organization: {
-            select: {
-              id: true,
-              name: true,
-              locationName: true,
-            },
-          },
+        include: {
+          organization: true,
         },
       },
     },
@@ -94,27 +65,7 @@ export async function getBookings(
   const totalCount = await prisma.booking.count({ where });
 
   return {
-    bookings: bookings.map((booking) => ({
-      id: booking.id,
-      userId: booking.userId,
-      offeringId: booking.offeringId,
-      quantity: booking.quantity,
-      status: booking.status as Booking["status"],
-      pickupTime: booking.pickupTime?.toISOString(),
-      notes: booking.notes || undefined,
-      totalPrice: booking.totalPrice,
-      createdAt: booking.createdAt.toISOString(),
-      updatedAt: booking.updatedAt.toISOString(),
-      offering: {
-        id: booking.offering.id,
-        name: booking.offering.name,
-        organization: {
-          id: booking.offering.organization.id,
-          name: booking.offering.organization.name,
-          locationName: booking.offering.organization.locationName,
-        },
-      },
-    })),
+    bookings,
     pagination: {
       total: totalCount,
       limit,
@@ -132,10 +83,9 @@ export async function createBooking(data: {
 }): Promise<Booking> {
   const { userId, offeringId, quantity = 1, notes } = data;
 
-  // Get the offering to calculate total price
   const offering = await prisma.offering.findUnique({
     where: { id: offeringId },
-    select: { price: true, stock: true },
+    select: { price: true, stock: true, bookingDuration: true },
   });
 
   if (!offering) {
@@ -158,16 +108,8 @@ export async function createBooking(data: {
     },
     include: {
       offering: {
-        select: {
-          id: true,
-          name: true,
-          organization: {
-            select: {
-              id: true,
-              name: true,
-              locationName: true,
-            },
-          },
+        include: {
+          organization: true,
         },
       },
     },
@@ -179,72 +121,24 @@ export async function createBooking(data: {
     data: { stock: { decrement: quantity } },
   });
 
-  return {
-    id: booking.id,
-    userId: booking.userId,
-    offeringId: booking.offeringId,
-    quantity: booking.quantity,
-    status: booking.status as Booking["status"],
-    pickupTime: booking.pickupTime?.toISOString(),
-    notes: booking.notes || undefined,
-    totalPrice: booking.totalPrice,
-    createdAt: booking.createdAt.toISOString(),
-    updatedAt: booking.updatedAt.toISOString(),
-    offering: {
-      id: booking.offering.id,
-      name: booking.offering.name,
-      organization: {
-        id: booking.offering.organization.id,
-        name: booking.offering.organization.name,
-        locationName: booking.offering.organization.locationName,
-      },
-    },
-  };
+  return booking;
 }
 
 export async function updateBookingStatus(
   bookingId: string,
-  status: Booking["status"]
+  status: BookingStatus
 ): Promise<Booking> {
   const booking = await prisma.booking.update({
     where: { id: bookingId },
     data: { status },
     include: {
       offering: {
-        select: {
-          id: true,
-          name: true,
-          organization: {
-            select: {
-              id: true,
-              name: true,
-              locationName: true,
-            },
-          },
+        include: {
+          organization: true,
         },
       },
     },
   });
 
-  return {
-    id: booking.id,
-    userId: booking.userId,
-    offeringId: booking.offeringId,
-    quantity: booking.quantity,
-    status: booking.status as Booking["status"],
-    pickupTime: booking.pickupTime?.toISOString(),
-    notes: booking.notes || undefined,
-    totalPrice: booking.totalPrice,
-    createdAt: booking.createdAt.toISOString(),
-    updatedAt: booking.updatedAt.toISOString(),
-    offering: {
-      id: booking.offering.id,
-      name: booking.offering.name,
-      organization: {
-        id: booking.offering.organization.id,
-        name: booking.offering.organization.name,
-        locationName: booking.offering.organization.locationName,
-      },
-    },
-  };
+  return booking;
 }
