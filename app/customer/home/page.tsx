@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Navbar from "@/components/common/navbar";
-import { CategoryFilter } from "./components/category-filter";
-import { OfferingCard } from "./components/offering-card";
-import { OfferingCardShimmer } from "./components/loading-shimmer";
-import { useOfferings, useCategories } from "./hooks/use-offerings";
-import { Offering } from "./services/offerings-service";
+import { CategoryFilter } from "./_components/category-filter";
+import { OfferingCard } from "./_components/offering-card";
+import { OfferingCardShimmer } from "./_components/offering-card";
+import { useOfferings } from "./_hooks/use-offerings";
+import { useCategories } from "./_hooks/use-categories";
+import { Offering } from "./_services/offerings-service";
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<
@@ -27,7 +27,6 @@ export default function HomePage() {
   const { data: categoriesResponse } = useCategories();
   const categories = categoriesResponse?.categories || [];
 
-  // Find the selected category name for display
   const selectedCategoryName = selectedCategory
     ? categories.find((cat) => cat.id === selectedCategory)?.name
     : undefined;
@@ -44,8 +43,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center mb-4">

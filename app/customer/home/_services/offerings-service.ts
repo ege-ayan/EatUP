@@ -18,11 +18,7 @@ type OfferingsResult = {
   };
 };
 
-type CategoriesResult = {
-  categories: Prisma.CategoryGetPayload<Record<string, never>>[];
-};
-
-export type { Offering, OfferingsResult, CategoriesResult };
+export type { Offering, OfferingsResult };
 
 export const offeringsService = {
   async getOfferings(
@@ -40,11 +36,6 @@ export const offeringsService = {
     const response = await axios.get<OfferingsResult>(
       `/api/offerings?${params.toString()}`
     );
-    return response.data;
-  },
-
-  async getCategories(): Promise<CategoriesResult> {
-    const response = await axios.get<CategoriesResult>("/api/categories");
     return response.data;
   },
 };

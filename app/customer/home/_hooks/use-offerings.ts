@@ -1,9 +1,8 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   offeringsService,
   OfferingsResult,
-  CategoriesResult,
-} from "../services/offerings-service";
+} from "../_services/offerings-service";
 
 export const useOfferings = (
   categoryId?: string,
@@ -26,12 +25,5 @@ export const useOfferings = (
       }
       return undefined;
     },
-  });
-};
-
-export const useCategories = () => {
-  return useQuery<CategoriesResult>({
-    queryKey: ["categories"],
-    queryFn: () => offeringsService.getCategories(),
   });
 };

@@ -1,9 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { CategoryFilterShimmer } from "./loading-shimmer";
-import { useCategories } from "../hooks/use-offerings";
+import { useCategories } from "../_hooks/use-categories";
+
+const CategoryFilterShimmer = () => {
+  return (
+    <div className="flex space-x-2 overflow-x-auto pb-2">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div
+          key={index}
+          className="h-10 bg-gray-200 rounded-full w-20 flex-shrink-0 animate-pulse"
+        ></div>
+      ))}
+    </div>
+  );
+};
 
 interface CategoryFilterProps {
-  selectedCategory?: string; // This is now a category ID
+  selectedCategory?: string;
   onCategoryChange: (categoryId: string | undefined) => void;
 }
 
