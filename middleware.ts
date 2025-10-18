@@ -1,24 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getCurrentUserRole } from "./lib/guards";
-import { UserRole } from "./lib/interfaces/user";
-
-const publicApiRoutes = [
-  "/api/auth/login",
-  "/api/auth/organization/login",
-  "/api/auth/register",
-  "/api/auth/logout",
-  "/api/auth/me",
-];
-
-const authPageRoutes = [
-  "/auth/login",
-  "/auth/login/organization",
-  "/auth/register",
-];
-
-const customerHomeRoutes = "/customer/home";
-const organizationHomeRoutes = "/organization/home";
+import {
+  getCurrentUserRole,
+  publicApiRoutes,
+  authPageRoutes,
+  customerHomeRoutes,
+  organizationHomeRoutes,
+  UserRole,
+} from "@/lib/guards";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

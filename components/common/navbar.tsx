@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useUserStore } from "@/lib/stores/user-store";
+import { useUserStore } from "@/components/providers/user-store";
 
 export default function Navbar() {
   const router = useRouter();

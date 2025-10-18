@@ -1,4 +1,0 @@
-export enum UserRole {
-  CUSTOMER = "CUSTOMER",
-  ORGANIZATION = "ORGANIZATION",
-}

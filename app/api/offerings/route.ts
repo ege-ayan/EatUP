@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOfferings } from "@/lib/offerings";
 import { prisma } from "@/lib/prisma";
-import { addOfferingApiSchema } from "@/lib/schemas/offering-schemas";
+import { addOfferingApiSchema } from "@/schemas/offering-schemas";
 import { deleteImage } from "@/lib/supabase";
 import { z } from "zod";
 

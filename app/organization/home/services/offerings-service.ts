@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "@/generated/prisma";
 
 type Offering = Prisma.OfferingGetPayload<{
   include: {

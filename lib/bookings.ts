@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { Prisma, BookingStatus } from "./generated/prisma";
+import { Prisma, BookingStatus } from "@/generated/prisma";
 
 type Booking = Prisma.BookingGetPayload<{
   include: {

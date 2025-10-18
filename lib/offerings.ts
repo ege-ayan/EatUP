@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { Prisma } from "./generated/prisma";
+import { Prisma } from "@/generated/prisma";
 
 type Category = Prisma.CategoryGetPayload<Record<string, never>>;
 type Offering = Prisma.OfferingGetPayload<{

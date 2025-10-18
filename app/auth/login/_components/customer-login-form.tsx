@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { useLogin } from "../_hooks/use-login";
 
 import Link from "next/link";
-import { loginSchema } from "@/lib/schemas/auth-schemas";
+import { loginSchema } from "@/schemas/auth-schemas";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 

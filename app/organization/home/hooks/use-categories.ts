@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "@/generated/prisma";
 
 type CategoriesResult = {
   categories: Prisma.CategoryGetPayload<Record<string, never>>[];

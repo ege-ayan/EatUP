@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -27,6 +27,7 @@ model User {
 enum UserRole {
   CUSTOMER
   ORGANIZATION
+  ADMIN
 }
 
 enum BookingStatus {

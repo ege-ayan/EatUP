@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useUserStore } from "@/lib/stores/user-store";
+import { useUserStore } from "@/components/providers/user-store";
 import {
   loginService,
   organizationLoginService,

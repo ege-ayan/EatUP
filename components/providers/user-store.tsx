@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { UserRole } from "../generated/prisma";
+import { UserRole } from "@/generated/prisma";
 
 export interface User {
   id: string;

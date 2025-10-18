@@ -78,9 +78,9 @@ import { useCategories } from "../hooks/use-categories";
 import {
   addOfferingFormSchema,
   type AddOfferingFormData,
-} from "@/lib/schemas/offering-schemas";
+} from "@/schemas/offering-schemas";
 import { uploadImage } from "@/lib/supabase";
-import { useUserStore } from "@/lib/stores/user-store";
+import { useUserStore } from "@/components/providers/user-store";
 
 interface AddOfferingModalProps {
   children: React.ReactNode;

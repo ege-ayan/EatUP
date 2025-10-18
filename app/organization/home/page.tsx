@@ -1,6 +1,6 @@
 "use client";
 
-import { useUserStore } from "@/lib/stores/user-store";
+import { useUserStore } from "@/components/providers/user-store";
 import { useOrganizationOfferings } from "./hooks/use-organization-offerings";
 import { OfferingsTable } from "./components/offerings-table";
 import { AddOfferingModal } from "./components/add-offering-modal";
