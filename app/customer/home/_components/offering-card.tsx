@@ -8,10 +8,9 @@ import { Offering } from "../_services/offerings-service";
 
 interface OfferingCardProps {
   offering: Offering;
-  onBook?: (offering: Offering) => void;
 }
 
-export const OfferingCard = ({ offering, onBook }: OfferingCardProps) => {
+export const OfferingCard = ({ offering }: OfferingCardProps) => {
   const [imageError, setImageError] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -27,7 +26,6 @@ export const OfferingCard = ({ offering, onBook }: OfferingCardProps) => {
       offering={offering}
       open={dialogOpen}
       onOpenChange={setDialogOpen}
-      onBook={onBook}
       trigger={
         <Card className="overflow-hidden bg-white border border-gray-200 shadow-md cursor-pointer hover:shadow-lg transition-all duration-200 group">
           <div className="relative">

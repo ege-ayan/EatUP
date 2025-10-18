@@ -20,12 +20,13 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Offering } from "../_services/offerings-service";
+import { useCreateBooking } from "../_hooks/use-create-booking";
+import { toast } from "sonner";
 
 interface OfferingDialogProps {
   offering: Offering;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onBook?: (offering: Offering) => void;
   trigger: React.ReactNode;
 }
 
@@ -33,10 +34,10 @@ export const OfferingDialog = ({
   offering,
   open,
   onOpenChange,
-  onBook,
   trigger,
 }: OfferingDialogProps) => {
   const [imageError, setImageError] = useState(false);
+  const createBookingMutation = useCreateBooking();
 
   const discountPercentage = offering.originalPrice
     ? Math.round(
@@ -45,9 +46,25 @@ export const OfferingDialog = ({
       )
     : 0;
 
-  const handleBook = () => {
-    onBook?.(offering);
-    onOpenChange(false);
+  const handleBook = async () => {
+    try {
+      await createBookingMutation.mutateAsync({
+        offeringId: offering.id,
+        quantity: 1, // Default to 1 for now
+      });
+
+      toast.success("Rezervasyon başarıyla oluşturuldu!", {
+        description: `${offering.name} için rezervasyonunuz alındı.`,
+      });
+
+      onOpenChange(false);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Bilinmeyen hata";
+      toast.error("Rezervasyon oluşturulamadı", {
+        description: errorMessage,
+      });
+    }
   };
 
   return (
@@ -199,10 +216,17 @@ export const OfferingDialog = ({
 
               <Button
                 onClick={handleBook}
-                disabled={offering.stock === 0}
-                className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-semibold text-base rounded-lg transition-all"
+                disabled={
+                  offering.stock === 0 || createBookingMutation.isPending
+                }
+                className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-semibold text-base rounded-lg transition-all disabled:opacity-50"
               >
-                {offering.stock === 0 ? (
+                {createBookingMutation.isPending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Rezervasyon Oluşturuluyor...
+                  </span>
+                ) : offering.stock === 0 ? (
                   <span className="flex items-center justify-center gap-2">
                     <Package className="w-5 h-5" />
                     Stokta Yok

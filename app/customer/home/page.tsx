@@ -8,7 +8,6 @@ import { OfferingCard } from "./_components/offering-card";
 import { OfferingCardShimmer } from "./_components/offering-card";
 import { useOfferings } from "./_hooks/use-offerings";
 import { useCategories } from "./_hooks/use-categories";
-import { Offering } from "./_services/offerings-service";
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<
@@ -30,11 +29,6 @@ export default function HomePage() {
   const selectedCategoryName = selectedCategory
     ? categories.find((cat) => cat.id === selectedCategory)?.name
     : undefined;
-
-  const handleBookOffering = (offering: Offering) => {
-    console.log("Booking offering:", offering);
-    alert(`Rezervasyon için "${offering.name}" seçildi!`);
-  };
 
   const allOfferings =
     offeringsPages?.pages.flatMap((page) => page.offerings || []) || [];
@@ -98,11 +92,7 @@ export default function HomePage() {
                 </div>
               ) : (
                 filteredOfferings.map((offering) => (
-                  <OfferingCard
-                    key={offering.id}
-                    offering={offering}
-                    onBook={handleBookOffering}
-                  />
+                  <OfferingCard key={offering.id} offering={offering} />
                 ))
               )}
             </div>
