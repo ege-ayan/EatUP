@@ -10,6 +10,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get("categoryId") || undefined;
     const organizationId = searchParams.get("organizationId") || undefined;
+    const search = searchParams.get("search") || undefined;
+    const sortBy = searchParams.get("sortBy") || "createdAt";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
     const limit = searchParams.get("limit")
       ? parseInt(searchParams.get("limit")!)
       : undefined;
@@ -18,7 +21,7 @@ export async function GET(request: NextRequest) {
       : undefined;
 
     const result = await getOfferings(
-      { categoryId, organizationId },
+      { categoryId, organizationId, search, sortBy, sortOrder },
       { limit, offset }
     );
 

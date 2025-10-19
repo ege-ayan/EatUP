@@ -7,15 +7,29 @@ import {
 export const useOfferings = (
   categoryId?: string,
   organizationId?: string,
-  limit = 20
+  search?: string,
+  sortBy?: string,
+  sortOrder?: string,
+  limit = 21
 ) => {
   return useInfiniteQuery<OfferingsResult>({
-    queryKey: ["offerings", categoryId, organizationId, limit],
+    queryKey: [
+      "offerings",
+      categoryId,
+      organizationId,
+      search,
+      sortBy,
+      sortOrder,
+      limit,
+    ],
     initialPageParam: 0,
     queryFn: ({ pageParam = 0 }) =>
       offeringsService.getOfferings(
         categoryId,
         organizationId,
+        search,
+        sortBy,
+        sortOrder,
         limit,
         pageParam as number
       ),

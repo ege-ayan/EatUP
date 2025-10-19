@@ -12,6 +12,9 @@ type Offering = Prisma.OfferingGetPayload<{
 export interface OfferingsFilter {
   categoryId?: string;
   organizationId?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
 }
 
 export interface PaginationOptions {
@@ -37,7 +40,13 @@ export async function getOfferings(
   filter: OfferingsFilter = {},
   pagination: PaginationOptions = {}
 ): Promise<OfferingsResult> {
-  const { categoryId, organizationId } = filter;
+  const {
+    categoryId,
+    organizationId,
+    search,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+  } = filter;
   const { limit = 20, offset = 0 } = pagination;
 
   const where: Record<string, unknown> = {
@@ -53,13 +62,42 @@ export async function getOfferings(
     where.organizationId = organizationId;
   }
 
+  // Add search functionality
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { description: { contains: search, mode: "insensitive" } },
+      { category: { name: { contains: search, mode: "insensitive" } } },
+      { organization: { name: { contains: search, mode: "insensitive" } } },
+    ];
+  }
+
+  // Build orderBy object
+  const orderBy: Record<string, "asc" | "desc">[] = [];
+
+  if (sortBy === "expirationDate") {
+    orderBy.push({ expirationDate: sortOrder as "asc" | "desc" });
+  } else if (sortBy === "price") {
+    orderBy.push({ price: sortOrder as "asc" | "desc" });
+  } else if (sortBy === "name") {
+    orderBy.push({ name: sortOrder as "asc" | "desc" });
+  } else {
+    // Default to createdAt
+    orderBy.push({ createdAt: sortOrder as "asc" | "desc" });
+  }
+
+  // Fallback sorting
+  if (sortBy !== "name") {
+    orderBy.push({ name: "asc" });
+  }
+
   const offerings = await prisma.offering.findMany({
     where,
     include: {
       category: true,
       organization: true,
     },
-    orderBy: [{ createdAt: "desc" }, { name: "asc" }],
+    orderBy,
     take: limit,
     skip: offset,
   });

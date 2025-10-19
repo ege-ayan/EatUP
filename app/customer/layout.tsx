@@ -5,9 +5,9 @@ export default function CustomerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="h-screen flex flex-col">
       <Navbar />
-      {children}
+      <div className="flex-1 overflow-hidden">{children}</div>
     </div>
   );
 }

@@ -40,12 +40,18 @@ export const offeringsService = {
   async getOfferings(
     categoryId?: string,
     organizationId?: string,
+    search?: string,
+    sortBy?: string,
+    sortOrder?: string,
     limit = 20,
     offset = 0
   ): Promise<OfferingsResult> {
     const params = new URLSearchParams();
     if (categoryId) params.append("categoryId", categoryId);
     if (organizationId) params.append("organizationId", organizationId);
+    if (search) params.append("search", search);
+    if (sortBy) params.append("sortBy", sortBy);
+    if (sortOrder) params.append("sortOrder", sortOrder);
     params.append("limit", limit.toString());
     params.append("offset", offset.toString());
 

@@ -27,7 +27,7 @@ export const OfferingCard = ({ offering }: OfferingCardProps) => {
       open={dialogOpen}
       onOpenChange={setDialogOpen}
       trigger={
-        <Card className="overflow-hidden bg-white border border-gray-200 shadow-md cursor-pointer hover:shadow-lg transition-all duration-200 group">
+        <Card className="h-full flex flex-col overflow-hidden bg-white border border-gray-200 shadow-md cursor-pointer hover:shadow-lg transition-all duration-200 group">
           <div className="relative">
             <div className="absolute top-3 left-3 z-10">
               <Badge
@@ -48,25 +48,27 @@ export const OfferingCard = ({ offering }: OfferingCardProps) => {
               </div>
             )}
 
-            <div className="relative h-48 bg-gray-100 group-hover:scale-105 transition-transform duration-200">
-              {offering.image && !imageError ? (
-                <Image
-                  src={offering.image}
-                  alt={offering.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  onError={() => setImageError(true)}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-                  <div className="text-4xl text-gray-400">🍽️</div>
-                </div>
-              )}
+            <div className="relative h-48 bg-gray-100 overflow-hidden">
+              <div className="group-hover:scale-105 transition-transform duration-200 h-full">
+                {offering.image && !imageError ? (
+                  <Image
+                    src={offering.image}
+                    alt={offering.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                    <div className="text-4xl text-gray-400">🍽️</div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          <CardContent className="p-4">
+          <CardContent className="p-4 flex-1 flex flex-col">
             <div className="mb-3">
               <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-1">
                 {offering.name}
@@ -83,12 +85,12 @@ export const OfferingCard = ({ offering }: OfferingCardProps) => {
             </div>
 
             {offering.description && (
-              <p className="text-sm text-gray-600 line-clamp-2 mb-3 leading-relaxed">
+              <p className="text-sm text-gray-600 line-clamp-2 mb-3 leading-relaxed flex-grow">
                 {offering.description}
               </p>
             )}
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mt-auto">
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-green-600">
                   ₺{offering.price.toFixed(2)}
@@ -114,21 +116,21 @@ export const OfferingCard = ({ offering }: OfferingCardProps) => {
 
 export const OfferingCardShimmer = () => {
   return (
-    <div className="bg-white border border-gray-200 shadow-md rounded-lg overflow-hidden animate-pulse">
+    <div className="h-full flex flex-col bg-white border border-gray-200 shadow-md rounded-lg overflow-hidden animate-pulse">
       <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200"></div>
 
-      <div className="p-4 space-y-3">
+      <div className="p-4 flex-1 flex flex-col space-y-3">
         <div className="space-y-2">
           <div className="h-5 bg-gray-200 rounded w-3/4"></div>
           <div className="h-3 bg-gray-200 rounded w-1/2"></div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 flex-grow">
           <div className="h-3 bg-gray-200 rounded"></div>
           <div className="h-3 bg-gray-200 rounded w-5/6"></div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           <div className="space-y-1">
             <div className="h-7 bg-gray-200 rounded w-16"></div>
             <div className="h-3 bg-gray-200 rounded w-12"></div>
