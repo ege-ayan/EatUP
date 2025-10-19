@@ -20,7 +20,7 @@ export const CategoryFilter = ({
 
   if (isLoading) {
     return (
-      <Select disabled>
+      <Select disabled value={selectedCategory || "all"}>
         <SelectTrigger className="w-full lg:w-[170px]">
           <SelectValue placeholder="Yükleniyor..." />
         </SelectTrigger>
@@ -30,7 +30,7 @@ export const CategoryFilter = ({
 
   if (error || !categoriesResponse) {
     return (
-      <Select disabled>
+      <Select disabled value={selectedCategory || "all"}>
         <SelectTrigger className="w-full lg:w-[170px]">
           <SelectValue placeholder="Yüklenemedi" />
         </SelectTrigger>

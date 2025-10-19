@@ -187,6 +187,40 @@ function getRandomBookingDuration(): number {
   return Math.floor(Math.random() * 60) + 5; // 5-65 minutes
 }
 
+// Valid food image URLs from Unsplash (verified working links at higher resolution)
+const foodImages = [
+  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=600&fit=crop&q=80", // Burger
+  "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&h=600&fit=crop&q=80", // Pizza
+  "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=800&h=600&fit=crop&q=80", // Pasta
+  "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=600&fit=crop&q=80", // Salad
+  "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&h=600&fit=crop&q=80", // Breakfast
+  "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=600&fit=crop&q=80", // Soup
+  "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=600&fit=crop&q=80", // Restaurant Food
+  "https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800&h=600&fit=crop&q=80", // Coffee
+  "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=800&h=600&fit=crop&q=80", // Tea
+  "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&h=600&fit=crop&q=80", // Kebab/Meat
+  "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&h=600&fit=crop&q=80", // Bread
+  "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=800&h=600&fit=crop&q=80", // Ice cream
+  "https://images.unsplash.com/photo-1519915212116-7cfef71f1d3e?w=800&h=600&fit=crop&q=80", // Dessert
+  "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&h=600&fit=crop&q=80", // Sushi
+  "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=800&h=600&fit=crop&q=80", // Fresh food
+  "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800&h=600&fit=crop&q=80", // Food platter
+  "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=800&h=600&fit=crop&q=80", // Pancakes
+  "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&h=600&fit=crop&q=80", // Bowl food
+  "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=600&fit=crop&q=80", // Restaurant dish
+  "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=800&h=600&fit=crop&q=80", // Fruit bowl
+  "https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=800&h=600&fit=crop&q=80", // Plate food
+  "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=800&h=600&fit=crop&q=80", // Sandwich
+  "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=800&h=600&fit=crop&q=80", // Tacos
+  "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=600&fit=crop&q=80", // Sushi/Asian
+  "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&h=600&fit=crop&q=80", // Burger deluxe
+  "https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=800&h=600&fit=crop&q=80", // Salmon
+  "https://images.unsplash.com/photo-1559847844-5315695dadae?w=800&h=600&fit=crop&q=80", // Steak
+  "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?w=800&h=600&fit=crop&q=80", // Breakfast platter
+  "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800&h=600&fit=crop&q=80", // Beverage
+  "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=600&fit=crop&q=80", // Cake/Dessert
+];
+
 async function main() {
   console.log("🌱 Seeding database...");
 
@@ -276,10 +310,10 @@ async function main() {
 
   console.log("✅ Organizations created:", organizations.length);
 
-  // Create offerings (reduced number for stability)
+  // Create offerings (50 is sufficient for testing)
   console.log("🏭 Generating offerings...");
   const offerings = [];
-  const targetOfferings = 300;
+  const targetOfferings = 50;
 
   for (let i = 0; i < targetOfferings; i++) {
     // Select random category
@@ -301,9 +335,7 @@ async function main() {
       data: {
         name: foodName,
         description: `${foodName} - ${getRandomElement(descriptions)}`,
-        image: `https://images.unsplash.com/photo-${Math.floor(
-          Math.random() * 1000000000000
-        )}?w=400&h=300&fit=crop`,
+        image: getRandomElement(foodImages),
         categoryId: category.id,
         price: basePrice,
         originalPrice: originalPrice
@@ -318,7 +350,7 @@ async function main() {
 
     offerings.push(offering);
 
-    if ((i + 1) % 50 === 0) {
+    if ((i + 1) % 10 === 0) {
       console.log(`📦 Created ${i + 1}/${targetOfferings} offerings...`);
     }
   }

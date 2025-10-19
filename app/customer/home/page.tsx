@@ -219,8 +219,12 @@ export default function HomePage() {
                     )}
                   </div>
                 ) : (
-                  filteredOfferings.map((offering) => (
-                    <OfferingCard key={offering.id} offering={offering} />
+                  filteredOfferings.map((offering, index) => (
+                    <OfferingCard
+                      key={offering.id}
+                      offering={offering}
+                      priority={index < 6}
+                    />
                   ))
                 )}
               </div>
