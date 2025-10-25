@@ -9,7 +9,7 @@ import {
   UserRole,
 } from "@/lib/guards";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (publicApiRoutes.some((route) => pathname.startsWith(route))) {
