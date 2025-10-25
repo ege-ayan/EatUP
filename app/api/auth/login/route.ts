@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateCredentials, login } from "@/lib/auth";
+import { login } from "@/lib/auth";
 import { loginSchema } from "@/schemas/auth-schemas";
 
 export async function POST(request: NextRequest) {
@@ -15,22 +15,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password } = validationResult.data;
-
-    const validationResultAuth = await validateCredentials(email, password);
-
-    if (
-      validationResultAuth.success &&
-      validationResultAuth.user &&
-      validationResultAuth.user.role !== "CUSTOMER"
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Bu giriş sadece müşteri hesapları için geçerlidir",
-        },
-        { status: 403 }
-      );
-    }
 
     const result = await login(email, password);
 

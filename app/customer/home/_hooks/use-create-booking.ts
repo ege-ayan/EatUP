@@ -13,6 +13,7 @@ export const useCreateBooking = () => {
       offeringsService.createBooking(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["offerings"] });
+      queryClient.invalidateQueries({ queryKey: ["check-booking"] });
     },
     onError: (error) => {
       console.error("Booking creation failed:", error);

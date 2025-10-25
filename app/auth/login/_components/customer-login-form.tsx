@@ -59,6 +59,9 @@ function LoginForm() {
               <CardTitle className="text-2xl font-bold text-gray-900">
                 Giriş Yap
               </CardTitle>
+              <p className="text-sm text-gray-600">
+                Müşteri veya organizasyon hesabınızla giriş yapın
+              </p>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -151,7 +154,7 @@ function LoginForm() {
                 </form>
               </Form>
 
-              <div className="mt-8 text-center space-y-2">
+              <div className="mt-8 text-center">
                 <p className="text-sm text-gray-600">
                   Hesabınız yok mu?{" "}
                   <Link
@@ -159,15 +162,6 @@ function LoginForm() {
                     className="text-green-600 hover:text-green-700 font-medium transition-colors"
                   >
                     Kayıt olun
-                  </Link>
-                </p>
-                <p className="text-sm text-gray-600">
-                  Organizasyon girişi için{" "}
-                  <Link
-                    href="/auth/login/organization"
-                    className="text-green-600 hover:text-green-700 font-medium transition-colors"
-                  >
-                    tıklayın
                   </Link>
                 </p>
               </div>

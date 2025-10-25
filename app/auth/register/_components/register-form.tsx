@@ -90,7 +90,7 @@ export default function RegisterForm() {
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-6"
                 >
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 items-start">
                     <FormField
                       control={form.control}
                       name="name"
@@ -108,7 +108,7 @@ export default function RegisterForm() {
                               />
                             </div>
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="min-h-[20px]" />
                         </FormItem>
                       )}
                     />
@@ -130,7 +130,7 @@ export default function RegisterForm() {
                               />
                             </div>
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="min-h-[20px]" />
                         </FormItem>
                       )}
                     />

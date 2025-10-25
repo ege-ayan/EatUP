@@ -4,7 +4,6 @@ import { useUserStore } from "@/components/providers/user-store";
 import { useOrganizationOfferings } from "./hooks/use-organization-offerings";
 import { OfferingsTable } from "./components/offerings-table";
 import { AddOfferingModal } from "./components/add-offering-modal";
-import Navbar from "@/components/common/navbar";
 import { Button } from "@/components/ui/button";
 import { Package, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -51,9 +50,7 @@ export default function OrganizationHomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
+    <div className="min-h-screen bg-gray-50 overflow-y-auto">
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between">

@@ -187,6 +187,11 @@ function getRandomBookingDuration(): number {
   return Math.floor(Math.random() * 60) + 5; // 5-65 minutes
 }
 
+// Helper function to generate random max reservation per customer
+function getRandomMaxReservation(): number {
+  return Math.floor(Math.random() * 4) + 1; // 1-5 items per customer
+}
+
 // Valid food image URLs from Unsplash (verified working links at higher resolution)
 const foodImages = [
   "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=600&fit=crop&q=80", // Burger
@@ -245,56 +250,135 @@ async function main() {
 
   console.log("✅ Categories created:", categories.length);
 
-  // Create organizations (15 different ones)
+  // Create organizations with hardcoded owner accounts
+  const organizationData = [
+    {
+      name: "Simit Sarayı",
+      ownerName: "Ahmet",
+      ownerSurname: "Yılmaz",
+      ownerEmail: "ahmet.yilmaz@simitsarayi.com",
+      category: "Kafeterya",
+    },
+    {
+      name: "Çorba Evi",
+      ownerName: "Mehmet",
+      ownerSurname: "Kaya",
+      ownerEmail: "mehmet.kaya@corbaevi.com",
+      category: "Restoran",
+    },
+    {
+      name: "Kahve Köşesi",
+      ownerName: "Ayşe",
+      ownerSurname: "Demir",
+      ownerEmail: "ayse.demir@kahvekosesi.com",
+      category: "Kafeterya",
+    },
+    {
+      name: "Lezzet Durağı",
+      ownerName: "Fatma",
+      ownerSurname: "Çelik",
+      ownerEmail: "fatma.celik@lezzetduragi.com",
+      category: "Restoran",
+    },
+    {
+      name: "Taze Yemek",
+      ownerName: "Ali",
+      ownerSurname: "Şahin",
+      ownerEmail: "ali.sahin@tazeyemek.com",
+      category: "Restoran",
+    },
+    {
+      name: "Campus Cafe",
+      ownerName: "Zeynep",
+      ownerSurname: "Yıldız",
+      ownerEmail: "zeynep.yildiz@campuscafe.com",
+      category: "Kafeterya",
+    },
+    {
+      name: "Öğrenci Kantini",
+      ownerName: "Emre",
+      ownerSurname: "Koç",
+      ownerEmail: "emre.koc@ogrencikantini.com",
+      category: "Kafeterya",
+    },
+    {
+      name: "Yemekhane",
+      ownerName: "Deniz",
+      ownerSurname: "Öztürk",
+      ownerEmail: "deniz.ozturk@yemekhane.com",
+      category: "Restoran",
+    },
+    {
+      name: "Fast Food",
+      ownerName: "Can",
+      ownerSurname: "Aydın",
+      ownerEmail: "can.aydin@fastfood.com",
+      category: "Restoran",
+    },
+    {
+      name: "Healthy Bites",
+      ownerName: "Ece",
+      ownerSurname: "Güneş",
+      ownerEmail: "ece.gunes@healthybites.com",
+      category: "Kafeterya",
+    },
+    {
+      name: "Tatlı Dünyası",
+      ownerName: "Burak",
+      ownerSurname: "Arslan",
+      ownerEmail: "burak.arslan@tatlidunyasi.com",
+      category: "Kafeterya",
+    },
+    {
+      name: "Çay Bahçesi",
+      ownerName: "Selin",
+      ownerSurname: "Polat",
+      ownerEmail: "selin.polat@caybahcesi.com",
+      category: "Kafeterya",
+    },
+    {
+      name: "Kafeterya",
+      ownerName: "Kerem",
+      ownerSurname: "Kara",
+      ownerEmail: "kerem.kara@kafeterya.com",
+      category: "Kafeterya",
+    },
+    {
+      name: "Restoran",
+      ownerName: "Elif",
+      ownerSurname: "Aksoy",
+      ownerEmail: "elif.aksoy@restoran.com",
+      category: "Restoran",
+    },
+    {
+      name: "Bistro",
+      ownerName: "Mert",
+      ownerSurname: "Erdoğan",
+      ownerEmail: "mert.erdogan@bistro.com",
+      category: "Restoran",
+    },
+  ];
+
   const organizations = [];
-  for (let i = 0; i < organizationNames.length; i++) {
+  for (let i = 0; i < organizationData.length; i++) {
+    const orgData = organizationData[i];
     const org = await prisma.organization.create({
       data: {
-        name: organizationNames[i],
+        name: orgData.name,
         location: `39.${8912 + Math.floor(Math.random() * 100)},32.${
           7857 + Math.floor(Math.random() * 100)
         }`,
         locationName: getRandomElement(locations),
-        category: Math.random() > 0.5 ? "Kafeterya" : "Restoran",
-        description: `${organizationNames[i]} - ${getRandomElement(
-          descriptions
-        )}`,
+        category: orgData.category,
+        description: `${orgData.name} - ${getRandomElement(descriptions)}`,
         phone: `+90 312 210 ${String(1000 + i).padStart(4, "0")}`,
-        email: `info@${organizationNames[i]
-          .toLowerCase()
-          .replace(/\s+/g, "")}.com`,
-        website: `https://${organizationNames[i]
-          .toLowerCase()
-          .replace(/\s+/g, "")}.com`,
+        email: `info@${orgData.name.toLowerCase().replace(/\s+/g, "")}.com`,
+        website: `https://${orgData.name.toLowerCase().replace(/\s+/g, "")}.com`,
         owner: {
           create: {
-            name: getRandomElement([
-              "Ahmet",
-              "Mehmet",
-              "Ayşe",
-              "Fatma",
-              "Ali",
-              "Zeynep",
-              "Emre",
-              "Deniz",
-              "Can",
-              "Ece",
-            ]),
-            surname: getRandomElement([
-              "Yılmaz",
-              "Kaya",
-              "Demir",
-              "Çelik",
-              "Şahin",
-              "Yıldız",
-              "Koç",
-              "Öztürk",
-              "Aydın",
-              "Güneş",
-            ]),
-            email: `owner${i}@${organizationNames[i]
-              .toLowerCase()
-              .replace(/\s+/g, "")}.com`,
+            name: orgData.ownerName,
+            surname: orgData.ownerSurname,
+            email: orgData.ownerEmail,
             password:
               "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
             role: "ORGANIZATION",
@@ -342,6 +426,7 @@ async function main() {
           ? Math.round(originalPrice * 100) / 100
           : null,
         stock: getRandomStock(),
+        maxReservationPerCustomer: getRandomMaxReservation(),
         bookingDuration: getRandomBookingDuration(),
         expirationDate: getRandomExpirationDate(),
         organizationId: organization.id,
@@ -419,13 +504,26 @@ async function main() {
       offerings.filter((o) => o.stock > 0)
     );
 
+    // Respect maxReservationPerCustomer limit
+    const quantity = Math.min(
+      Math.floor(Math.random() * 3) + 1,
+      randomOffering.maxReservationPerCustomer
+    );
+
+    // Calculate pickup time based on booking duration
+    const pickupTime = new Date();
+    pickupTime.setMinutes(
+      pickupTime.getMinutes() + (randomOffering.bookingDuration || 30)
+    );
+
     const booking = await prisma.booking.create({
       data: {
         userId: randomUser.id,
         offeringId: randomOffering.id,
-        quantity: Math.floor(Math.random() * 3) + 1, // 1-3 quantity
+        quantity: quantity,
         status: getRandomElement(["PENDING", "CONFIRMED", "COMPLETED"]),
-        totalPrice: randomOffering.price * (Math.floor(Math.random() * 3) + 1),
+        totalPrice: randomOffering.price * quantity,
+        pickupTime: pickupTime,
       },
     });
 

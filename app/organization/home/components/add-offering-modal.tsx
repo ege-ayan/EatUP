@@ -112,6 +112,7 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
       price: 0,
       originalPrice: 0,
       stock: 0,
+      maxReservationPerCustomer: 1,
       bookingDuration: 30,
       expirationDate: "",
       categoryId: "",
@@ -150,6 +151,7 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
         ...(data.originalPrice &&
           data.originalPrice > 0 && { originalPrice: data.originalPrice }),
         stock: data.stock,
+        maxReservationPerCustomer: data.maxReservationPerCustomer || 1,
         bookingDuration: data.bookingDuration,
         expirationDate: data.expirationDate,
         categoryId: data.categoryId,
@@ -440,6 +442,28 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="maxReservationPerCustomer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Müşteri Başına Maksimum Rezervasyon *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="1"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value) || 1)
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="space-y-2">
                 <FormLabel>Ürün Görseli (Opsiyonel)</FormLabel>

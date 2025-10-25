@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Image from "next/image";
 import {
   MapPin,
@@ -6,9 +7,12 @@ import {
   Store,
   Clock,
   Calendar,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +37,13 @@ export const OfferingDialog = ({
   onOpenChange,
   trigger,
 }: OfferingDialogProps) => {
+  const [quantity, setQuantity] = useState(1);
   const createBookingMutation = useCreateBooking();
+
+  const maxQuantity = Math.min(
+    offering.maxReservationPerCustomer || 1,
+    offering.stock
+  );
 
   const discountPercentage = offering.originalPrice
     ? Math.round(
@@ -48,19 +58,52 @@ export const OfferingDialog = ({
     return "bg-red-600";
   };
 
+  const calculatePickupDeadline = () => {
+    const now = new Date();
+    const duration = offering.bookingDuration || 30;
+    const deadline = new Date(now.getTime() + duration * 60000);
+    return deadline.toLocaleString("tr-TR", {
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const handleBook = async () => {
+    // Validation
+    if (quantity < 1) {
+      toast.error("Miktar en az 1 olmalıdır");
+      return;
+    }
+
+    if (quantity > maxQuantity) {
+      toast.error(`Maksimum ${maxQuantity} adet rezervasyon yapabilirsiniz`);
+      return;
+    }
+
     try {
       await createBookingMutation.mutateAsync({
         offeringId: offering.id,
-        quantity: 1,
+        quantity,
       });
 
-      toast.success("Rezervasyon başarıyla oluşturuldu!");
+      const pickupDeadline = calculatePickupDeadline();
+      toast.success(
+        `Rezervasyon başarıyla oluşturuldu! ${pickupDeadline}'a kadar siparişinizi teslim almanız gerekecek.`,
+        { duration: 5000 }
+      );
 
       onOpenChange(false);
+      setQuantity(1);
     } catch (error) {
       console.error(error);
-      toast.error("Rezervasyon oluşturulamadı");
+
+      if (error instanceof Error) {
+        toast.error(error.message || "Rezervasyon oluşturulamadı");
+      } else {
+        toast.error("Rezervasyon oluşturulamadı");
+      }
     }
   };
 
@@ -143,7 +186,7 @@ export const OfferingDialog = ({
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               <Clock className="w-5 h-5 text-gray-600 flex-shrink-0" />
               <div>
-                <p className="text-xs text-gray-500 mb-0.5">Hazırlık</p>
+                <p className="text-xs text-gray-500 mb-0.5">Alım Süresi</p>
                 <p className="text-sm font-medium text-gray-900">
                   {offering.bookingDuration} dakika
                 </p>
@@ -167,41 +210,86 @@ export const OfferingDialog = ({
             </div>
           )}
 
-          {/* Price and Book Button */}
-          <div className="flex items-center justify-between pt-4 border-t">
+          {/* Price and Action Row */}
+          <div className="flex items-end justify-between gap-4 pt-4 border-t mt-4">
+            {/* Price Section */}
             <div>
+              <p className="text-sm text-gray-500 mb-1">Toplam Fiyat</p>
               {offering.originalPrice && (
-                <p className="text-sm text-gray-400 line-through mb-1">
-                  ₺{offering.originalPrice.toFixed(2)}
+                <p className="text-sm text-gray-400 line-through">
+                  ₺{(offering.originalPrice * quantity).toFixed(2)}
                 </p>
               )}
               <p className="text-3xl font-bold text-green-600">
-                ₺{offering.price.toFixed(2)}
+                ₺{(offering.price * quantity).toFixed(2)}
               </p>
             </div>
 
-            <Button
-              onClick={handleBook}
-              disabled={offering.stock === 0 || createBookingMutation.isPending}
-              className="h-12 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {createBookingMutation.isPending ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Yükleniyor...
-                </span>
-              ) : offering.stock === 0 ? (
-                <span className="flex items-center gap-2">
-                  <Package className="w-5 h-5" />
-                  Stokta Yok
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5" />
-                  Rezerv Et
-                </span>
-              )}
-            </Button>
+            {/* Quantity Selector and Reserve Button */}
+            <div className="flex items-center gap-3">
+              {/* Quantity Selector */}
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <Input
+                  type="number"
+                  min="1"
+                  max={maxQuantity}
+                  value={quantity}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 1;
+                    setQuantity(Math.min(Math.max(1, val), maxQuantity));
+                  }}
+                  className="h-10 w-16 text-center text-lg font-semibold"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10"
+                  onClick={() =>
+                    setQuantity(Math.min(maxQuantity, quantity + 1))
+                  }
+                  disabled={quantity >= maxQuantity}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Reserve Button */}
+              <Button
+                onClick={handleBook}
+                disabled={
+                  offering.stock === 0 || createBookingMutation.isPending
+                }
+                className="h-12 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {createBookingMutation.isPending ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Yükleniyor...
+                  </span>
+                ) : offering.stock === 0 ? (
+                  <span className="flex items-center gap-2">
+                    <Package className="w-5 h-5" />
+                    Stokta Yok
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5" />
+                    Rezerv Et
+                  </span>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

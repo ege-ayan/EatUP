@@ -12,7 +12,7 @@ export interface LoginResponse {
     name: string;
     surname: string;
     email: string;
-    role: "CUSTOMER" | "ORGANIZATION";
+    role: "CUSTOMER" | "ORGANIZATION" | "ADMIN";
     createdAt: string;
   };
   error?: string;
@@ -22,16 +22,6 @@ export const loginService = {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await axios.post<LoginResponse>(
       "/api/auth/login",
-      credentials
-    );
-    return response.data;
-  },
-};
-
-export const organizationLoginService = {
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await axios.post<LoginResponse>(
-      "/api/auth/organization/login",
       credentials
     );
     return response.data;

@@ -19,3 +19,34 @@ export const registerSchema = z
   });
 
 export const registerApiSchema = registerSchema.omit({ confirmPassword: true });
+
+export const forgotPasswordSchema = z.object({
+  email: z.email("Geçerli bir e-posta adresi giriniz"),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(6, "Şifre en az 6 karakter olmalıdır")
+      .max(100, "Şifre en fazla 100 karakter olabilir"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Şifreler eşleşmiyor",
+    path: ["confirmPassword"],
+  });
+
+export const resetPasswordApiSchema = z
+  .object({
+    token: z.string().min(1, "Token gereklidir"),
+    password: z
+      .string()
+      .min(6, "Şifre en az 6 karakter olmalıdır")
+      .max(100, "Şifre en fazla 100 karakter olabilir"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Şifreler eşleşmiyor",
+    path: ["confirmPassword"],
+  });

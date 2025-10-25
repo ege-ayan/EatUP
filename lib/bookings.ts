@@ -83,9 +83,31 @@ export async function createBooking(data: {
 }): Promise<Booking> {
   const { userId, offeringId, quantity = 1, notes } = data;
 
+  // Validate quantity
+  if (quantity < 1) {
+    throw new Error("Quantity must be at least 1");
+  }
+
+  // Check if user already has a booking for this offering
+  const existingBooking = await prisma.booking.findFirst({
+    where: {
+      userId,
+      offeringId,
+    },
+  });
+
+  if (existingBooking) {
+    throw new Error("You have already reserved this offering");
+  }
+
   const offering = await prisma.offering.findUnique({
     where: { id: offeringId },
-    select: { price: true, stock: true, bookingDuration: true },
+    select: {
+      price: true,
+      stock: true,
+      maxReservationPerCustomer: true,
+      bookingDuration: true,
+    },
   });
 
   if (!offering) {
@@ -96,7 +118,20 @@ export async function createBooking(data: {
     throw new Error("Insufficient stock");
   }
 
+  // Validate quantity against max reservation per customer
+  if (quantity > offering.maxReservationPerCustomer) {
+    throw new Error(
+      `Maximum ${offering.maxReservationPerCustomer} items can be reserved per customer`
+    );
+  }
+
   const totalPrice = offering.price * quantity;
+
+  // Calculate pickup time: current time + booking duration (in minutes)
+  const pickupTime = new Date();
+  pickupTime.setMinutes(
+    pickupTime.getMinutes() + (offering.bookingDuration || 30)
+  );
 
   const booking = await prisma.booking.create({
     data: {
@@ -105,6 +140,7 @@ export async function createBooking(data: {
       quantity,
       notes,
       totalPrice,
+      pickupTime,
     },
     include: {
       offering: {

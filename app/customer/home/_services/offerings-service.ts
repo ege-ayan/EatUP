@@ -62,7 +62,15 @@ export const offeringsService = {
   },
 
   async createBooking(data: CreateBookingData): Promise<Booking> {
-    const response = await axios.post<Booking>("/api/bookings", data);
-    return response.data;
+    try {
+      const response = await axios.post<Booking>("/api/bookings", data);
+      return response.data;
+    } catch (error) {
+      // Extract error message from API response
+      if (axios.isAxiosError(error) && error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
+    }
   },
 };

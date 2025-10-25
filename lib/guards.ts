@@ -11,16 +11,18 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 export const publicApiRoutes = [
   "/api/auth/login",
-  "/api/auth/organization/login",
   "/api/auth/register",
   "/api/auth/logout",
   "/api/auth/me",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
 ];
 
 export const authPageRoutes = [
   "/auth/login",
-  "/auth/login/organization",
   "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password",
 ];
 
 export const customerHomeRoutes = "/customer/home";

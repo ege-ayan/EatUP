@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateBookingStatus } from "@/lib/bookings";
 import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   request: NextRequest,
@@ -31,17 +32,43 @@ export async function PATCH(
       );
     }
 
+    // Get booking with offering information to check authorization
+    const existingBooking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        offering: {
+          include: {
+            organization: true,
+          },
+        },
+      },
+    });
+
+    if (!existingBooking) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    // Check authorization
+    // Customers can update their own bookings
+    // Organizations can update bookings for their offerings
+    const isCustomer =
+      user.role === "CUSTOMER" && existingBooking.userId === user.id;
+    const isOrganizationOwner =
+      user.role === "ORGANIZATION" &&
+      existingBooking.offering.organization.ownerId === user.id;
+
+    if (!isCustomer && !isOrganizationOwner) {
+      return NextResponse.json(
+        { error: "You don't have permission to update this booking" },
+        { status: 403 }
+      );
+    }
+
+    // Update the booking
     const booking = await updateBookingStatus(
       bookingId,
       status as "COMPLETED" | "CANCELLED"
     );
-
-    if (booking.userId !== user.id) {
-      return NextResponse.json(
-        { error: "You can only update your own bookings" },
-        { status: 403 }
-      );
-    }
 
     return NextResponse.json(booking);
   } catch (error) {

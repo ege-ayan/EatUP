@@ -77,6 +77,24 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+
+      if (error.message === "Quantity must be at least 1") {
+        return NextResponse.json(
+          { error: "Quantity must be at least 1" },
+          { status: 400 }
+        );
+      }
+
+      if (error.message.includes("Maximum")) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+
+      if (error.message === "You have already reserved this offering") {
+        return NextResponse.json(
+          { error: "Bu ürünü zaten rezerve ettiniz" },
+          { status: 400 }
+        );
+      }
     }
 
     return NextResponse.json(

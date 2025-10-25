@@ -9,6 +9,10 @@ export const addOfferingSchema = z.object({
     .min(1, "Orijinal fiyat 1'den büyük olmalıdır")
     .optional(),
   stock: z.number().int().min(1, "Stok miktarı en az 1 olmalıdır"),
+  maxReservationPerCustomer: z
+    .number()
+    .int()
+    .min(1, "Müşteri başına maksimum rezervasyon en az 1 olmalıdır"),
   bookingDuration: z
     .number()
     .int()

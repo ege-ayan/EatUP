@@ -72,8 +72,8 @@ export default function BookingsPage() {
             </div>
 
             {isLoadingCurrent ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, index) => (
+              <div className="space-y-4">
+                {Array.from({ length: 4 }).map((_, index) => (
                   <BookingCardShimmer key={index} />
                 ))}
               </div>
@@ -89,14 +89,14 @@ export default function BookingsPage() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-4 max-h-[calc(100vh-350px)] overflow-y-auto pr-2">
                   {activeBookings.map((booking) => (
                     <BookingCard key={booking.id} booking={booking} />
                   ))}
                 </div>
 
                 {hasNextCurrent && (
-                  <div className="text-center">
+                  <div className="text-center mt-6">
                     <Button
                       onClick={() => fetchNextCurrent()}
                       disabled={isFetchingNextCurrent}
@@ -120,8 +120,8 @@ export default function BookingsPage() {
             </div>
 
             {isLoadingPast ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, index) => (
+              <div className="space-y-4">
+                {Array.from({ length: 4 }).map((_, index) => (
                   <BookingCardShimmer key={index} />
                 ))}
               </div>
@@ -137,14 +137,14 @@ export default function BookingsPage() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-4 max-h-[calc(100vh-350px)] overflow-y-auto pr-2">
                   {pastBookings.map((booking) => (
                     <BookingCard key={booking.id} booking={booking} />
                   ))}
                 </div>
 
                 {hasNextPast && (
-                  <div className="text-center">
+                  <div className="text-center mt-6">
                     <Button
                       onClick={() => fetchNextPast()}
                       disabled={isFetchingNextPast}
