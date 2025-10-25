@@ -7,12 +7,12 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  ChevronRight,
   Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { BookingStatus } from "@/generated/prisma";
 import { OrganizationBooking } from "../_services/bookings-service";
 import { useUpdateBookingStatus } from "../_hooks/use-organization-bookings";
 import { toast } from "sonner";
@@ -111,7 +111,8 @@ export const BookingCard = ({ booking }: BookingCardProps) => {
   };
 
   const canMarkAsDelivered =
-    booking.status === "PENDING" || booking.status === "CONFIRMED";
+    booking.status === BookingStatus.PENDING ||
+    booking.status === BookingStatus.CONFIRMED;
 
   return (
     <>
@@ -170,7 +171,7 @@ export const BookingCard = ({ booking }: BookingCardProps) => {
                 <span className="ml-1.5">{getStatusText(booking.status)}</span>
               </Badge>
 
-              {canMarkAsDelivered ? (
+              {canMarkAsDelivered && (
                 <Button
                   onClick={handleMarkAsDelivered}
                   disabled={isDelivering}
@@ -185,18 +186,6 @@ export const BookingCard = ({ booking }: BookingCardProps) => {
                       Teslim Et
                     </>
                   )}
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDetailOpen(true);
-                  }}
-                >
-                  Detaylar
-                  <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               )}
             </div>

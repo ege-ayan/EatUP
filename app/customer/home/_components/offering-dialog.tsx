@@ -9,6 +9,8 @@ import {
   Calendar,
   Minus,
   Plus,
+  ExternalLink,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +25,7 @@ import {
 import { Offering } from "../_services/offerings-service";
 import { useCreateBooking } from "../_hooks/use-create-booking";
 import { toast } from "sonner";
+import Swal from "sweetalert2";
 
 interface OfferingDialogProps {
   offering: Offering;
@@ -82,28 +85,59 @@ export const OfferingDialog = ({
       return;
     }
 
+    const currentQuantity = quantity;
+    onOpenChange(false);
+
+    const pickupDeadline = calculatePickupDeadline();
+    const result = await Swal.fire({
+      title: "Rezervasyon Onayı",
+      html: `
+        <div style="text-align: center;">
+          <p><strong>${currentQuantity} adet ${offering.name}</strong> rezerve etmek istediğinizden emin misiniz?</p>
+          <p style="margin-top: 12px; color: #f59e0b; font-weight: 500;">
+          ${pickupDeadline}'a kadar almanız gerekecek.
+          </p>
+        </div>
+      `,
+      icon: "question",
+      iconColor: "#16a34a",
+      reverseButtons: true,
+      showCancelButton: true,
+      confirmButtonColor: "#16a34a",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Evet",
+      cancelButtonText: "Vazgeç",
+    });
+
+    if (!result.isConfirmed) {
+      onOpenChange(true);
+      return;
+    }
+
     try {
       await createBookingMutation.mutateAsync({
         offeringId: offering.id,
-        quantity,
+        quantity: currentQuantity,
       });
 
-      const pickupDeadline = calculatePickupDeadline();
-      toast.success(
-        `Rezervasyon başarıyla oluşturuldu! ${pickupDeadline}'a kadar siparişinizi teslim almanız gerekecek.`,
-        { duration: 5000 }
-      );
-
-      onOpenChange(false);
+      toast.success("Rezervasyon başarıyla oluşturuldu!");
       setQuantity(1);
     } catch (error) {
       console.error(error);
 
-      if (error instanceof Error) {
-        toast.error(error.message || "Rezervasyon oluşturulamadı");
-      } else {
-        toast.error("Rezervasyon oluşturulamadı");
-      }
+      const errorMessage =
+        error instanceof Error ? error.message : "Rezervasyon oluşturulamadı";
+
+      await Swal.fire({
+        title: "Hata",
+        text: errorMessage,
+        icon: "error",
+        iconColor: "#dc2626",
+        confirmButtonColor: "#16a34a",
+        confirmButtonText: "Tamam",
+      });
+
+      onOpenChange(true);
     }
   };
 
@@ -111,7 +145,10 @@ export const OfferingDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <div onClick={() => onOpenChange(true)}>{trigger}</div>
 
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0 gap-0">
+      <DialogContent
+        className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0 gap-0"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader className="sr-only">
           <DialogTitle>{offering.name}</DialogTitle>
           <DialogDescription>
@@ -154,13 +191,19 @@ export const OfferingDialog = ({
                 <span>{offering.organization.name}</span>
               </div>
             </div>
-            <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${getStockColor(
-                offering.stock
-              )} text-white font-medium text-sm`}
-            >
-              <Package className="w-4 h-4" />
-              <span>{offering.stock} adet</span>
+            <div className="flex flex-col items-end gap-1">
+              <div
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${getStockColor(
+                  offering.stock
+                )} text-white font-medium text-sm`}
+              >
+                <Package className="w-4 h-4" />
+                <span>{offering.stock} adet</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <Users className="w-3 h-3" />
+                <span>Max {offering.maxReservationPerCustomer}/kişi</span>
+              </div>
             </div>
           </div>
 
@@ -173,15 +216,23 @@ export const OfferingDialog = ({
 
           {/* Info Grid */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <MapPin className="w-5 h-5 text-gray-600 flex-shrink-0" />
-              <div className="min-w-0">
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                offering.organization.locationName
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
+            >
+              <MapPin className="w-5 h-5 text-gray-600 flex-shrink-0 group-hover:text-blue-600" />
+              <div className="min-w-0 flex-1">
                 <p className="text-xs text-gray-500 mb-0.5">Konum</p>
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600">
                   {offering.organization.locationName}
                 </p>
               </div>
-            </div>
+              <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            </a>
 
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               <Clock className="w-5 h-5 text-gray-600 flex-shrink-0" />
@@ -248,6 +299,7 @@ export const OfferingDialog = ({
                     const val = parseInt(e.target.value) || 1;
                     setQuantity(Math.min(Math.max(1, val), maxQuantity));
                   }}
+                  autoFocus={false}
                   className="h-10 w-16 text-center text-lg font-semibold"
                 />
                 <Button

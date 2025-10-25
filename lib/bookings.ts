@@ -88,15 +88,18 @@ export async function createBooking(data: {
     throw new Error("Quantity must be at least 1");
   }
 
-  // Check if user already has a booking for this offering
-  const existingBooking = await prisma.booking.findFirst({
+  // Check if user already has an ACTIVE booking for this offering
+  const existingActiveBooking = await prisma.booking.findFirst({
     where: {
       userId,
       offeringId,
+      status: {
+        in: [BookingStatus.PENDING, BookingStatus.CONFIRMED],
+      },
     },
   });
 
-  if (existingBooking) {
+  if (existingActiveBooking) {
     throw new Error("You have already reserved this offering");
   }
 
@@ -164,6 +167,30 @@ export async function updateBookingStatus(
   bookingId: string,
   status: BookingStatus
 ): Promise<Booking> {
+  // Get the booking first to check if we need to return stock
+  const existingBooking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      offering: true,
+    },
+  });
+
+  if (!existingBooking) {
+    throw new Error("Booking not found");
+  }
+
+  // If cancelling a booking, return the stock
+  if (
+    status === BookingStatus.CANCELLED &&
+    (existingBooking.status === BookingStatus.PENDING ||
+      existingBooking.status === BookingStatus.CONFIRMED)
+  ) {
+    await prisma.offering.update({
+      where: { id: existingBooking.offeringId },
+      data: { stock: { increment: existingBooking.quantity } },
+    });
+  }
+
   const booking = await prisma.booking.update({
     where: { id: bookingId },
     data: { status },

@@ -36,6 +36,7 @@ export const useUpdateBookingStatus = () => {
       bookingsService.updateBookingStatus(bookingId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["offerings"] });
     },
   });
 };

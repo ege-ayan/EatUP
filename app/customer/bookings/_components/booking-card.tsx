@@ -8,71 +8,57 @@ import {
   XCircle,
   Clock,
   Building2,
-  MoreVertical,
-  Check,
-  X,
   Calendar,
-  AlertCircle,
-  ChevronRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Card } from "@/components/ui/card";
+import { BookingStatus } from "@/generated/prisma";
 import { Booking } from "../_services/bookings-service";
-import { useUpdateBookingStatus } from "../_hooks/use-bookings";
-import { toast } from "sonner";
 import { BookingDetailDialog } from "./booking-detail-dialog";
-import Swal from "sweetalert2";
 
 interface BookingCardProps {
   booking: Booking;
 }
 
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: BookingStatus) => {
   switch (status) {
-    case "PENDING":
+    case BookingStatus.PENDING:
       return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    case "CONFIRMED":
+    case BookingStatus.CONFIRMED:
       return "bg-blue-100 text-blue-800 border-blue-200";
-    case "COMPLETED":
+    case BookingStatus.COMPLETED:
       return "bg-green-100 text-green-800 border-green-200";
-    case "CANCELLED":
+    case BookingStatus.CANCELLED:
       return "bg-red-100 text-red-800 border-red-200";
     default:
       return "bg-gray-100 text-gray-800 border-gray-200";
   }
 };
 
-const getStatusIcon = (status: string) => {
+const getStatusIcon = (status: BookingStatus) => {
   switch (status) {
-    case "PENDING":
+    case BookingStatus.PENDING:
       return <Clock className="w-4 h-4" />;
-    case "CONFIRMED":
+    case BookingStatus.CONFIRMED:
       return <CheckCircle2 className="w-4 h-4" />;
-    case "COMPLETED":
+    case BookingStatus.COMPLETED:
       return <CheckCircle2 className="w-4 h-4" />;
-    case "CANCELLED":
+    case BookingStatus.CANCELLED:
       return <XCircle className="w-4 h-4" />;
     default:
       return <Clock className="w-4 h-4" />;
   }
 };
 
-const getStatusText = (status: string) => {
+const getStatusText = (status: BookingStatus) => {
   switch (status) {
-    case "PENDING":
+    case BookingStatus.PENDING:
       return "Bekleniyor";
-    case "CONFIRMED":
+    case BookingStatus.CONFIRMED:
       return "Onaylandı";
-    case "COMPLETED":
+    case BookingStatus.COMPLETED:
       return "Tamamlandı";
-    case "CANCELLED":
+    case BookingStatus.CANCELLED:
       return "İptal Edildi";
     default:
       return status;
@@ -88,28 +74,35 @@ const calculateRemainingTime = (pickupTime: Date) => {
     return { text: "Süresi doldu", color: "text-red-600", expired: true };
   }
 
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const totalMinutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
 
-  if (hours < 1) {
-    return {
-      text: `${minutes} dakika kaldı`,
-      color: "text-red-600",
-      expired: false,
-    };
-  } else if (hours < 3) {
-    return {
-      text: `${hours} saat ${minutes} dakika kaldı`,
-      color: "text-orange-600",
-      expired: false,
-    };
+  let text = "";
+  let color = "";
+
+  if (totalMinutes < 15) {
+    // Less than 15 minutes - RED
+    text = `${totalMinutes} dakika kaldı`;
+    color = "text-red-600";
+  } else if (totalMinutes < 30) {
+    // 15-30 minutes - YELLOW
+    text = `${totalMinutes} dakika kaldı`;
+    color = "text-yellow-600";
+  } else if (totalMinutes < 60) {
+    // 30-60 minutes - BLUE
+    text = `${totalMinutes} dakika kaldı`;
+    color = "text-blue-600";
   } else {
-    return {
-      text: `${hours} saat kaldı`,
-      color: "text-green-600",
-      expired: false,
-    };
+    // More than 1 hour - BLUE
+    text =
+      hours > 1
+        ? `${hours} saat ${minutes} dakika kaldı`
+        : `${hours} saat ${minutes} dakika kaldı`;
+    color = "text-blue-600";
   }
+
+  return { text, color, expired: false };
 };
 
 export const BookingCard = ({ booking }: BookingCardProps) => {
@@ -120,12 +113,12 @@ export const BookingCard = ({ booking }: BookingCardProps) => {
     color: string;
     expired: boolean;
   } | null>(null);
-  const updateBookingMutation = useUpdateBookingStatus();
 
   useEffect(() => {
     if (
       booking.pickupTime &&
-      (booking.status === "PENDING" || booking.status === "CONFIRMED")
+      (booking.status === BookingStatus.PENDING ||
+        booking.status === BookingStatus.CONFIRMED)
     ) {
       const updateTime = () => {
         setRemainingTime(calculateRemainingTime(new Date(booking.pickupTime!)));
@@ -138,58 +131,27 @@ export const BookingCard = ({ booking }: BookingCardProps) => {
     }
   }, [booking.pickupTime, booking.status]);
 
-  const handleStatusUpdate = async (
-    status: "COMPLETED" | "CANCELLED",
-    e: React.MouseEvent
-  ) => {
-    e.stopPropagation(); // Prevent card click
-
-    // Show confirmation for cancellation
-    if (status === "CANCELLED") {
-      const result = await Swal.fire({
-        title: "Rezervasyonu İptal Et",
-        html: `<strong>${booking.offering.name}</strong> rezervasyonunu iptal etmek istediğinize emin misiniz?`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#dc2626",
-        cancelButtonColor: "#6b7280",
-        confirmButtonText: "Evet, İptal Et",
-        cancelButtonText: "Vazgeç",
-      });
-
-      if (!result.isConfirmed) {
-        return;
-      }
-    }
-
-    try {
-      await updateBookingMutation.mutateAsync({
-        bookingId: booking.id,
-        status,
-      });
-
-      toast.success(
-        status === "COMPLETED"
-          ? "Rezervasyon tamamlandı!"
-          : "Rezervasyon iptal edildi!"
-      );
-    } catch {
-      toast.error("Durum güncellenemedi");
-    }
-  };
-
-  const canUpdateStatus =
-    booking.status === "CONFIRMED" || booking.status === "PENDING";
-
   return (
     <>
       <Card
-        className="overflow-hidden bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group"
+        className="overflow-hidden bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group p-0"
         onClick={() => setDetailOpen(true)}
       >
-        <div className="flex flex-col sm:flex-row sm:h-[200px]">
+        <div className="flex flex-col sm:flex-row sm:h-[200px] h-full relative">
+          {/* Status Badge - Top Right */}
+          <div className="absolute top-3 right-3 z-10">
+            <Badge
+              className={`${getStatusColor(
+                booking.status
+              )} font-medium px-3 py-1.5 text-sm shadow-md`}
+            >
+              {getStatusIcon(booking.status)}
+              <span className="ml-1.5">{getStatusText(booking.status)}</span>
+            </Badge>
+          </div>
+
           {/* Image Section */}
-          <div className="relative w-full sm:w-48 h-48 sm:h-[200px] bg-gray-100 flex-shrink-0">
+          <div className="relative w-full sm:w-48 h-48 sm:h-full bg-gray-100 flex-shrink-0">
             {booking.offering.image && !imageError ? (
               <Image
                 src={booking.offering.image}
@@ -204,69 +166,35 @@ export const BookingCard = ({ booking }: BookingCardProps) => {
                 <div className="text-6xl">🍽️</div>
               </div>
             )}
-
-            {/* Status Badge Overlay */}
-            <div className="absolute top-3 left-3">
-              <Badge
-                className={`${getStatusColor(
-                  booking.status
-                )} font-medium px-3 py-1.5 text-sm`}
-              >
-                {getStatusIcon(booking.status)}
-                <span className="ml-1.5">{getStatusText(booking.status)}</span>
-              </Badge>
-            </div>
           </div>
 
           {/* Content Section */}
           <div className="flex-1 p-5">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h3 className="font-bold text-xl text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
-                  {booking.offering.name}
-                </h3>
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                  <Building2 className="w-4 h-4 flex-shrink-0" />
-                  <span className="font-medium">
-                    {booking.offering.organization.name}
-                  </span>
-                </div>
+            <div className="mb-4">
+              <h3 className="font-bold text-xl text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
+                {booking.offering.name}
+              </h3>
+              <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                <Building2 className="w-4 h-4 flex-shrink-0" />
+                <span className="font-medium">
+                  {booking.offering.organization.name}
+                </span>
               </div>
 
-              {/* Actions Menu */}
-              {canUpdateStatus && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    asChild
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 ml-2"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {booking.status === "CONFIRMED" && (
-                      <DropdownMenuItem
-                        onClick={(e) => handleStatusUpdate("COMPLETED", e)}
-                        className="text-green-600"
-                      >
-                        <Check className="w-4 h-4 mr-2" />
-                        Tamamlandı Olarak İşaretle
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem
-                      onClick={(e) => handleStatusUpdate("CANCELLED", e)}
-                      className="text-red-600"
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      İptal Et
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              {/* Remaining Time Badge */}
+              {remainingTime && !remainingTime.expired && (
+                <Badge
+                  className={`${
+                    remainingTime.color === "text-red-600"
+                      ? "bg-red-100 text-red-800 border-red-200"
+                      : remainingTime.color === "text-yellow-600"
+                        ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                        : "bg-blue-100 text-blue-800 border-blue-200"
+                  } font-medium px-2 py-1 text-xs flex items-center gap-1 w-fit`}
+                >
+                  <Clock className="w-3 h-3" />
+                  {remainingTime.text}
+                </Badge>
               )}
             </div>
 
@@ -327,54 +255,6 @@ export const BookingCard = ({ booking }: BookingCardProps) => {
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Remaining Time or Pickup Time */}
-            <div className="flex items-center justify-between pt-4 border-t">
-              {remainingTime && !remainingTime.expired ? (
-                <div className="flex items-center gap-2">
-                  <AlertCircle
-                    className={`w-5 h-5 ${remainingTime.color} animate-pulse`}
-                  />
-                  <div>
-                    <p className="text-xs text-gray-500">Kalan Süre</p>
-                    <p className={`text-sm font-bold ${remainingTime.color}`}>
-                      {remainingTime.text}
-                    </p>
-                  </div>
-                </div>
-              ) : booking.pickupTime ? (
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="text-xs text-gray-500">Teslim Alma</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {new Date(booking.pickupTime).toLocaleString("tr-TR", {
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div />
-              )}
-
-              {/* View Details */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDetailOpen(true);
-                }}
-              >
-                Detaylar
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
             </div>
           </div>
         </div>

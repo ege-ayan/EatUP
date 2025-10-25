@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import {
   Package,
@@ -12,15 +13,23 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
+  MapPin,
+  ExternalLink,
+  X as XIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { BookingStatus } from "@/generated/prisma";
 import { Booking } from "../_services/bookings-service";
+import { useUpdateBookingStatus } from "../_hooks/use-bookings";
+import { toast } from "sonner";
+import Swal from "sweetalert2";
 
 interface BookingDetailDialogProps {
   booking: Booking;
@@ -28,45 +37,45 @@ interface BookingDetailDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: BookingStatus) => {
   switch (status) {
-    case "PENDING":
+    case BookingStatus.PENDING:
       return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    case "CONFIRMED":
+    case BookingStatus.CONFIRMED:
       return "bg-blue-100 text-blue-800 border-blue-200";
-    case "COMPLETED":
+    case BookingStatus.COMPLETED:
       return "bg-green-100 text-green-800 border-green-200";
-    case "CANCELLED":
+    case BookingStatus.CANCELLED:
       return "bg-red-100 text-red-800 border-red-200";
     default:
       return "bg-gray-100 text-gray-800 border-gray-200";
   }
 };
 
-const getStatusIcon = (status: string) => {
+const getStatusIcon = (status: BookingStatus) => {
   switch (status) {
-    case "PENDING":
-      return <Clock className="w-4 h-4" />;
-    case "CONFIRMED":
-      return <CheckCircle2 className="w-4 h-4" />;
-    case "COMPLETED":
-      return <CheckCircle2 className="w-4 h-4" />;
-    case "CANCELLED":
-      return <XCircle className="w-4 h-4" />;
+    case BookingStatus.PENDING:
+      return <Clock className="w-5 h-5" />;
+    case BookingStatus.CONFIRMED:
+      return <CheckCircle2 className="w-5 h-5" />;
+    case BookingStatus.COMPLETED:
+      return <CheckCircle2 className="w-5 h-5" />;
+    case BookingStatus.CANCELLED:
+      return <XCircle className="w-5 h-5" />;
     default:
-      return <Clock className="w-4 h-4" />;
+      return <Clock className="w-5 h-5" />;
   }
 };
 
-const getStatusText = (status: string) => {
+const getStatusText = (status: BookingStatus) => {
   switch (status) {
-    case "PENDING":
+    case BookingStatus.PENDING:
       return "Bekleniyor";
-    case "CONFIRMED":
+    case BookingStatus.CONFIRMED:
       return "Onaylandı";
-    case "COMPLETED":
+    case BookingStatus.COMPLETED:
       return "Tamamlandı";
-    case "CANCELLED":
+    case BookingStatus.CANCELLED:
       return "İptal Edildi";
     default:
       return status;
@@ -79,6 +88,49 @@ export const BookingDetailDialog = ({
   onOpenChange,
 }: BookingDetailDialogProps) => {
   const [imageError, setImageError] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const updateBookingMutation = useUpdateBookingStatus();
+
+  const canCancel =
+    booking.status === BookingStatus.PENDING ||
+    booking.status === BookingStatus.CONFIRMED;
+
+  const handleCancel = async () => {
+    // Close dialog temporarily to show SweetAlert
+    onOpenChange(false);
+
+    const result = await Swal.fire({
+      title: "Rezervasyonu İptal Et",
+      html: `<strong>${booking.offering.name}</strong> rezervasyonunu iptal etmek istediğinize emin misiniz?`,
+      icon: "warning",
+      reverseButtons: true,
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Evet",
+      cancelButtonText: "Vazgeç",
+    });
+
+    if (!result.isConfirmed) {
+      onOpenChange(true);
+      return;
+    }
+
+    setIsCancelling(true);
+    try {
+      await updateBookingMutation.mutateAsync({
+        bookingId: booking.id,
+        status: "CANCELLED",
+      });
+      toast.success("Rezervasyon iptal edildi!");
+    } catch {
+      toast.error("Rezervasyon iptal edilemedi");
+      // Reopen dialog on error
+      onOpenChange(true);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -100,12 +152,12 @@ export const BookingDetailDialog = ({
             </div>
           )}
 
-          {/* Status Badge Overlay */}
-          <div className="absolute top-4 right-4">
+          {/* Status Badge Overlay - Top Left */}
+          <div className="absolute top-4 left-4">
             <Badge
               className={`${getStatusColor(
                 booking.status
-              )} font-semibold px-4 py-2 text-sm`}
+              )} font-semibold px-4 py-2`}
             >
               {getStatusIcon(booking.status)}
               <span className="ml-2">{getStatusText(booking.status)}</span>
@@ -206,17 +258,43 @@ export const BookingDetailDialog = ({
                 </div>
               </div>
 
-              {booking.offering.organization.phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <p className="text-sm text-gray-500">Telefon</p>
-                    <p className="font-medium text-gray-900">
-                      {booking.offering.organization.phone}
-                    </p>
+              {/* Phone and Location in same row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {booking.offering.organization.phone && (
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <Phone className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <p className="text-sm text-gray-500">Telefon</p>
+                      <a
+                        href={`tel:${booking.offering.organization.phone}`}
+                        className="font-medium text-blue-600 hover:text-blue-700"
+                      >
+                        {booking.offering.organization.phone}
+                      </a>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {booking.offering.organization.locationName && (
+                  <Link
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      booking.offering.organization.locationName
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
+                  >
+                    <MapPin className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-500">Konum</p>
+                      <p className="font-medium text-gray-900 group-hover:text-blue-600 truncate">
+                        {booking.offering.organization.locationName}
+                      </p>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
 
@@ -230,6 +308,30 @@ export const BookingDetailDialog = ({
                 <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
                 <p className="text-sm text-gray-700">{booking.notes}</p>
               </div>
+            </div>
+          )}
+
+          {/* Cancel Button */}
+          {canCancel && (
+            <div className="border-t pt-6 flex justify-end">
+              <Button
+                onClick={handleCancel}
+                disabled={isCancelling}
+                variant="destructive"
+                className="flex items-center gap-2"
+              >
+                {isCancelling ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    İptal Ediliyor...
+                  </>
+                ) : (
+                  <>
+                    <XIcon className="w-4 h-4" />
+                    Rezervasyonu İptal Et
+                  </>
+                )}
+              </Button>
             </div>
           )}
         </div>
