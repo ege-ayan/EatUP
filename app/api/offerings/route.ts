@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOfferings } from "@/lib/offerings";
+import { getOfferings, updateOffering } from "@/lib/offerings";
 import { prisma } from "@/lib/prisma";
-import { addOfferingApiSchema } from "@/schemas/offering-schemas";
+import { addOfferingApiSchema, updateOfferingApiSchema } from "@/schemas/offering-schemas";
 import { deleteImage } from "@/lib/supabase";
 import { z } from "zod";
 
@@ -159,6 +159,112 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { success: false, error: "Ürün oluşturulamadı" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const validatedData = updateOfferingApiSchema.parse(body);
+
+    const existingOffering = await prisma.offering.findUnique({
+      where: { id: validatedData.id },
+    });
+
+    if (!existingOffering) {
+      return NextResponse.json(
+        { success: false, error: "Ürün bulunamadı" },
+        { status: 404 }
+      );
+    }
+
+    // Validate category if provided
+    if (validatedData.categoryId) {
+      const category = await prisma.category.findFirst({
+        where: {
+          id: validatedData.categoryId,
+          isActive: true,
+        },
+      });
+
+      if (!category) {
+        return NextResponse.json(
+          { success: false, error: "Geçersiz kategori seçimi" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // If the image has changed and there's an old image, delete it
+    if (validatedData.image && existingOffering.image && validatedData.image !== existingOffering.image) {
+      try {
+        await deleteImage(existingOffering.image);
+      } catch (imageError) {
+        console.error("Failed to delete old image:", imageError);
+      }
+    }
+
+    const offering = await updateOffering(validatedData.id, {
+      name: validatedData.name,
+      description: validatedData.description || null,
+      price: validatedData.price,
+      originalPrice: validatedData.originalPrice || null,
+      stock: validatedData.stock,
+      maxReservationPerCustomer: validatedData.maxReservationPerCustomer,
+      bookingDuration: validatedData.bookingDuration,
+      expirationDate: new Date(validatedData.expirationDate),
+      categoryId: validatedData.categoryId,
+      image: validatedData.image || null,
+    });
+
+    const transformedOffering = {
+      id: offering.id,
+      name: offering.name,
+      description: offering.description,
+      image: offering.image,
+      price: offering.price,
+      originalPrice: offering.originalPrice,
+      stock: offering.stock,
+      maxReservationPerCustomer: offering.maxReservationPerCustomer,
+      bookingDuration: offering.bookingDuration,
+      expirationDate: offering.expirationDate?.toISOString(),
+      isAvailable: offering.isAvailable,
+      organizationId: offering.organizationId,
+      categoryId: offering.categoryId,
+      category: {
+        id: offering.category.id,
+        name: offering.category.name,
+        description: offering.category.description,
+      },
+      organization: {
+        id: offering.organization.id,
+        name: offering.organization.name,
+        locationName: offering.organization.locationName,
+        category: offering.organization.category,
+        image: offering.organization.image,
+      },
+      createdAt: offering.createdAt.toISOString(),
+      updatedAt: offering.updatedAt.toISOString(),
+    };
+
+    return NextResponse.json({
+      success: true,
+      offering: transformedOffering,
+    });
+  } catch (error) {
+    console.error("Update offering API error:", error);
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: "Geçersiz veri", details: error.issues },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: false, error: "Ürün güncellenemedi" },
       { status: 500 }
     );
   }

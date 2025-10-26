@@ -129,3 +129,48 @@ export async function getCategories(): Promise<CategoriesResult> {
     categories,
   };
 }
+
+export async function getOfferingById(id: string): Promise<Offering | null> {
+  const offering = await prisma.offering.findUnique({
+    where: { id },
+    include: {
+      category: true,
+      organization: true,
+    },
+  });
+
+  return offering;
+}
+
+export interface UpdateOfferingData {
+  name?: string;
+  description?: string | null;
+  price?: number;
+  originalPrice?: number | null;
+  stock?: number;
+  maxReservationPerCustomer?: number;
+  bookingDuration?: number;
+  expirationDate?: Date;
+  categoryId?: string;
+  image?: string | null;
+  isAvailable?: boolean;
+}
+
+export async function updateOffering(
+  id: string,
+  data: UpdateOfferingData
+): Promise<Offering> {
+  const offering = await prisma.offering.update({
+    where: { id },
+    data: {
+      ...data,
+      isAvailable: data.stock !== undefined ? data.stock > 0 : undefined,
+    },
+    include: {
+      category: true,
+      organization: true,
+    },
+  });
+
+  return offering;
+}

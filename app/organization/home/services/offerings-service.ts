@@ -34,6 +34,25 @@ export const offeringsService = {
     return response.data;
   },
 
+  async updateOffering(
+    data: {
+      id: string;
+      name: string;
+      description?: string;
+      price: number;
+      originalPrice?: number;
+      stock: number;
+      maxReservationPerCustomer: number;
+      bookingDuration: number;
+      expirationDate: string;
+      categoryId: string;
+      image?: string;
+    }
+  ): Promise<{ success: boolean; offering?: Offering; error?: string }> {
+    const response = await axios.put(`/api/offerings`, data);
+    return response.data;
+  },
+
   async deleteOffering(
     id: string
   ): Promise<{ success: boolean; message?: string; error?: string }> {

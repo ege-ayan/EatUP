@@ -40,6 +40,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Prisma } from "@/generated/prisma";
+import { UpdateOfferingModal } from "./update-offering-modal";
 
 type Offering = Prisma.OfferingGetPayload<{
   include: {
@@ -62,6 +63,8 @@ export function OfferingsTable({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [selectedOffering, setSelectedOffering] = useState<Offering | null>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
   const columns: ColumnDef<Offering>[] = [
     {
@@ -246,8 +249,8 @@ export function OfferingsTable({
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => {
-                  // TODO: Implement edit functionality
-                  console.log("Edit offering:", offering.id);
+                  setSelectedOffering(offering);
+                  setIsUpdateModalOpen(true);
                 }}
               >
                 <Edit className="mr-2 h-4 w-4" />
@@ -377,6 +380,14 @@ export function OfferingsTable({
           </TableBody>
         </Table>
       </div>
+
+      {selectedOffering && (
+        <UpdateOfferingModal
+          offering={selectedOffering}
+          open={isUpdateModalOpen}
+          onOpenChange={setIsUpdateModalOpen}
+        />
+      )}
     </div>
   );
 }

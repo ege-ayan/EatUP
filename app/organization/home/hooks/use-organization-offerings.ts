@@ -10,6 +10,14 @@ export const useOrganizationOfferings = (organizationId: string) => {
     enabled: !!organizationId,
   });
 
+  const updateOfferingMutation = useMutation({
+    mutationFn: (data: Parameters<typeof offeringsService.updateOffering>[0]) =>
+      offeringsService.updateOffering(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organization-offerings"] });
+    },
+  });
+
   const deleteOfferingMutation = useMutation({
     mutationFn: (id: string) => offeringsService.deleteOffering(id),
     onSuccess: () => {
@@ -19,6 +27,7 @@ export const useOrganizationOfferings = (organizationId: string) => {
 
   return {
     ...query,
+    updateOffering: updateOfferingMutation.mutateAsync,
     deleteOffering: deleteOfferingMutation.mutateAsync,
   };
 };

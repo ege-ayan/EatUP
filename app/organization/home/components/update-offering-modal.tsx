@@ -49,7 +49,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Popover,
@@ -76,31 +75,44 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCategories } from "../hooks/use-categories";
 import {
-  addOfferingFormSchema,
-  type AddOfferingFormData,
+  updateOfferingFormSchema,
+  type UpdateOfferingFormData,
 } from "@/schemas/offering-schemas";
 import { uploadImage } from "@/lib/supabase";
-import { useUserStore } from "@/components/providers/user-store";
+import type { Offering } from "../services/offerings-service";
 
-interface AddOfferingModalProps {
-  children: React.ReactNode;
+interface UpdateOfferingModalProps {
+  offering: Offering;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function AddOfferingModal({ children }: AddOfferingModalProps) {
-  const [open, setOpen] = useState(false);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+export function UpdateOfferingModal({
+  offering,
+  open,
+  onOpenChange,
+}: UpdateOfferingModalProps) {
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(
+    offering.image
+  );
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    offering.expirationDate ? new Date(offering.expirationDate) : null
+  );
   const queryClient = useQueryClient();
-  const user = useUserStore((state) => state.user);
 
   const { data: categoriesResponse } = useCategories();
-
   const categories = categoriesResponse?.categories || [];
 
   useEffect(() => {
     if (open) {
       setUploadError(null);
+      // Reset with current offering values
+      setUploadedImageUrl(offering.image);
+      setSelectedDate(
+        offering.expirationDate ? new Date(offering.expirationDate) : null
+      );
     } else {
       // Reset form when dialog closes
       form.reset();
@@ -118,7 +130,7 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
   ): string => {
     // Remove any character that is not a digit or decimal point
     let filtered = value.replace(/[^\d.]/g, "");
-    
+
     // If decimals are not allowed, remove decimal points
     if (!allowDecimals) {
       filtered = filtered.replace(/\./g, "");
@@ -129,31 +141,33 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
         filtered = parts[0] + "." + parts.slice(1).join("");
       }
     }
-    
+
     return filtered;
   };
 
-  const form = useForm<AddOfferingFormData>({
-    resolver: zodResolver(addOfferingFormSchema),
+  const form = useForm<UpdateOfferingFormData>({
+    resolver: zodResolver(updateOfferingFormSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      price: "",
-      originalPrice: "",
-      stock: "",
-      maxReservationPerCustomer: "",
-      bookingDuration: "",
-      expirationDate: "",
-      categoryId: "",
+      name: offering.name,
+      description: offering.description || "",
+      price: offering.price.toString(),
+      originalPrice: offering.originalPrice?.toString() || "",
+      stock: offering.stock.toString(),
+      maxReservationPerCustomer: offering.maxReservationPerCustomer.toString(),
+      bookingDuration: (offering.bookingDuration || 30).toString(),
+      expirationDate: offering.expirationDate 
+        ? (typeof offering.expirationDate === 'string' 
+            ? offering.expirationDate 
+            : new Date(offering.expirationDate).toISOString())
+        : "",
+      categoryId: offering.categoryId,
       imageFile: undefined,
     },
   });
 
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-
-  const createOfferingMutation = useMutation({
-    mutationFn: async (data: AddOfferingFormData) => {
-      let imageUrl = "";
+  const updateOfferingMutation = useMutation({
+    mutationFn: async (data: UpdateOfferingFormData) => {
+      let imageUrl = uploadedImageUrl || "";
 
       if (data.imageFile) {
         setIsUploading(true);
@@ -161,60 +175,48 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
           imageUrl = await uploadImage(data.imageFile);
         } catch (error) {
           console.warn(
-            "Image upload failed (continuing without image):",
+            "Image upload failed (continuing with old image):",
             error
           );
           setUploadError(
-            "Resim yüklenemedi, ürün görseli olmadan devam edilecek"
+            "Resim yüklenemedi, eski resim ile devam edilecek"
           );
-          imageUrl = "";
+          imageUrl = uploadedImageUrl || "";
         } finally {
           setIsUploading(false);
         }
       }
 
       const offeringData = {
+        id: offering.id,
         name: data.name,
         description: data.description || "",
         price: Number(data.price),
         ...(data.originalPrice &&
-          data.originalPrice !== "" && { originalPrice: Number(data.originalPrice) }),
+          data.originalPrice !== "" && {
+            originalPrice: Number(data.originalPrice),
+          }),
         stock: Number(data.stock),
         maxReservationPerCustomer: Number(data.maxReservationPerCustomer),
         bookingDuration: Number(data.bookingDuration),
         expirationDate: data.expirationDate,
         categoryId: data.categoryId,
         image: imageUrl || "",
-        organizationId: user?.id || "",
       };
 
-      const response = await axios.post("/api/offerings", offeringData);
+      const response = await axios.put("/api/offerings", offeringData);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organization-offerings"] });
-      setOpen(false);
-      form.reset();
-      setSelectedDate(null);
-      setUploadedImageUrl(null);
-      setUploadError(null);
-      toast.success("Ürün başarıyla eklendi");
+      onOpenChange(false);
+      toast.success("Ürün başarıyla güncellendi");
     },
     onError: (error: AxiosError) => {
-      console.error("Failed to create offering:", error);
-      if (
-        error.response?.data &&
-        typeof error.response.data === "object" &&
-        "error" in error.response.data
-      ) {
-        console.error(
-          "API Error:",
-          (error.response.data as { error: string }).error
-        );
-        toast.error((error.response.data as { error: string }).error);
-      } else {
-        toast.error("Ürün eklenirken bir hata oluştu");
-      }
+      const errorMessage =
+        (error.response?.data as { error?: string })?.error ||
+        "Ürün güncellenirken bir hata oluştu";
+      toast.error(errorMessage);
     },
   });
 
@@ -242,22 +244,21 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
     maxSize: 5 * 1024 * 1024,
   });
 
-  const onSubmit = (data: AddOfferingFormData) => {
-    createOfferingMutation.mutate(data);
+  const onSubmit = (data: UpdateOfferingFormData) => {
+    updateOfferingMutation.mutate(data);
   };
 
-  const isLoading = createOfferingMutation.isPending || isUploading;
+  const isLoading = updateOfferingMutation.isPending || isUploading;
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: datePickerStyles }} />
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>{children}</DialogTrigger>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Yeni Ürün Ekle</DialogTitle>
+            <DialogTitle>Ürün Düzenle</DialogTitle>
             <DialogDescription>
-              Ürün bilgilerini doldurarak yeni bir ürün ekleyin.
+              Ürün bilgilerini güncelleyin.
             </DialogDescription>
           </DialogHeader>
 
@@ -270,7 +271,7 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
                   <FormItem>
                     <FormLabel>Ürün Adı *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ürün adını giriniz" {...field} />
+                      <Input placeholder="Ürün adı" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -285,6 +286,7 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
                     <FormLabel>Açıklama</FormLabel>
                     <FormControl>
                       <Textarea
+                        rows={3}
                         placeholder="Ürün açıklaması (opsiyonel)"
                         className="resize-none"
                         {...field}
@@ -308,7 +310,10 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
                           placeholder="0.00"
                           {...field}
                           onChange={(e) => {
-                            const filtered = handleNumericInput(e.target.value, true);
+                            const filtered = handleNumericInput(
+                              e.target.value,
+                              true
+                            );
                             field.onChange(filtered);
                           }}
                         />
@@ -330,7 +335,10 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
                           placeholder="0.00"
                           {...field}
                           onChange={(e) => {
-                            const filtered = handleNumericInput(e.target.value, true);
+                            const filtered = handleNumericInput(
+                              e.target.value,
+                              true
+                            );
                             field.onChange(filtered);
                           }}
                         />
@@ -355,7 +363,10 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
                           className="w-full"
                           {...field}
                           onChange={(e) => {
-                            const filtered = handleNumericInput(e.target.value, false);
+                            const filtered = handleNumericInput(
+                              e.target.value,
+                              false
+                            );
                             field.onChange(filtered);
                           }}
                         />
@@ -426,7 +437,10 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
                           className="w-full"
                           {...field}
                           onChange={(e) => {
-                            const filtered = handleNumericInput(e.target.value, false);
+                            const filtered = handleNumericInput(
+                              e.target.value,
+                              false
+                            );
                             field.onChange(filtered);
                           }}
                         />
@@ -477,7 +491,10 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
                         placeholder="1"
                         {...field}
                         onChange={(e) => {
-                          const filtered = handleNumericInput(e.target.value, false);
+                          const filtered = handleNumericInput(
+                            e.target.value,
+                            false
+                          );
                           field.onChange(filtered);
                         }}
                       />
@@ -494,44 +511,41 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
                     ⚠️ {uploadError}
                   </div>
                 )}
-                {!uploadedImageUrl ? (
+                {uploadedImageUrl ? (
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200">
+                    <Image
+                      src={uploadedImageUrl}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
                   <div
                     {...getRootProps()}
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                    className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                       isDragActive
-                        ? "border-primary bg-primary/5"
-                        : "border-gray-300 hover:border-primary"
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-300 hover:border-gray-400"
                     }`}
                   >
                     <input {...getInputProps()} />
-                    <ImageIcon className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-600">
+                    <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-sm text-gray-600 mb-2">
                       {isDragActive
-                        ? "Resmi buraya bırakın"
-                        : "Resmi sürükleyip bırakın veya tıklayın"}
+                        ? "Resmi buraya bırakın..."
+                        : "Resim yüklemek için tıklayın veya sürükleyin"}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      PNG, JPG, JPEG, WebP (max 5MB)
+                    <p className="text-xs text-gray-500">
+                      PNG, JPG, WEBP (Maks. 5MB)
                     </p>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <Image
-                      src={uploadedImageUrl!}
-                      alt="Uploaded preview"
-                      width={320}
-                      height={128}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={removeImage}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
                   </div>
                 )}
               </div>
@@ -540,13 +554,13 @@ export function AddOfferingModal({ children }: AddOfferingModalProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setOpen(false)}
+                  onClick={() => onOpenChange(false)}
                   disabled={isLoading}
                 >
                   İptal
                 </Button>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Kaydediliyor..." : "Ürün Ekle"}
+                  {isLoading ? "Güncelleniyor..." : "Güncelle"}
                 </Button>
               </DialogFooter>
             </form>
