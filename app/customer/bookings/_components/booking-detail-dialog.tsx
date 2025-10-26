@@ -37,7 +37,12 @@ interface BookingDetailDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const getStatusColor = (status: BookingStatus) => {
+const getStatusColor = (status: BookingStatus, isPastPending: boolean) => {
+  // If it's a past pending booking, show as not picked up (red)
+  if (isPastPending) {
+    return "bg-red-100 text-red-800 border-red-200";
+  }
+
   switch (status) {
     case BookingStatus.PENDING:
       return "bg-yellow-100 text-yellow-800 border-yellow-200";
@@ -52,7 +57,12 @@ const getStatusColor = (status: BookingStatus) => {
   }
 };
 
-const getStatusIcon = (status: BookingStatus) => {
+const getStatusIcon = (status: BookingStatus, isPastPending: boolean) => {
+  // If it's a past pending booking, show X icon
+  if (isPastPending) {
+    return <XCircle className="w-5 h-5" />;
+  }
+
   switch (status) {
     case BookingStatus.PENDING:
       return <Clock className="w-5 h-5" />;
@@ -67,7 +77,12 @@ const getStatusIcon = (status: BookingStatus) => {
   }
 };
 
-const getStatusText = (status: BookingStatus) => {
+const getStatusText = (status: BookingStatus, isPastPending: boolean) => {
+  // If it's a past pending booking, show as not picked up
+  if (isPastPending) {
+    return "Teslim Alınmadı";
+  }
+
   switch (status) {
     case BookingStatus.PENDING:
       return "Bekleniyor";
@@ -91,9 +106,19 @@ export const BookingDetailDialog = ({
   const [isCancelling, setIsCancelling] = useState(false);
   const updateBookingMutation = useUpdateBookingStatus();
 
+  // Check if this is a past pending booking (pending/confirmed but deadline passed)
+  const now = new Date();
+  const isPastPending = Boolean(
+    (booking.status === BookingStatus.PENDING ||
+      booking.status === BookingStatus.CONFIRMED) &&
+      booking.pickupTime &&
+      new Date(booking.pickupTime) <= now
+  );
+
   const canCancel =
-    booking.status === BookingStatus.PENDING ||
-    booking.status === BookingStatus.CONFIRMED;
+    (booking.status === BookingStatus.PENDING ||
+      booking.status === BookingStatus.CONFIRMED) &&
+    !isPastPending; // Cannot cancel if deadline has passed
 
   const handleCancel = async () => {
     // Close dialog temporarily to show SweetAlert
@@ -156,11 +181,14 @@ export const BookingDetailDialog = ({
           <div className="absolute top-4 left-4">
             <Badge
               className={`${getStatusColor(
-                booking.status
+                booking.status,
+                isPastPending
               )} font-semibold px-4 py-2`}
             >
-              {getStatusIcon(booking.status)}
-              <span className="ml-2">{getStatusText(booking.status)}</span>
+              {getStatusIcon(booking.status, isPastPending)}
+              <span className="ml-2">
+                {getStatusText(booking.status, isPastPending)}
+              </span>
             </Badge>
           </div>
         </div>

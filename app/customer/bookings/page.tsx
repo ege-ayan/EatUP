@@ -27,49 +27,23 @@ export default function BookingsPage() {
 
   const now = new Date();
 
-  // Filter bookings based on status and pickup time
+  // Filter bookings based ONLY on pickup date (not status)
   const activeBookings = allBookings.filter((booking) => {
-    // Include PENDING and CONFIRMED bookings
-    if (
-      booking.status === BookingStatus.PENDING ||
-      booking.status === BookingStatus.CONFIRMED
-    ) {
-      return true;
+    // If no pickup time, consider it current
+    if (!booking.pickupTime) {
+      return booking.status !== BookingStatus.COMPLETED;
     }
-
-    // Include CANCELLED bookings if pickup time hasn't passed
-    if (
-      booking.status === BookingStatus.CANCELLED &&
-      booking.pickupTime &&
-      new Date(booking.pickupTime) > now
-    ) {
-      return true;
-    }
-
-    return false;
+    // Current if pickup time is in the future
+    return new Date(booking.pickupTime) > now;
   });
 
   const pastBookings = allBookings.filter((booking) => {
-    // Include COMPLETED bookings
-    if (booking.status === BookingStatus.COMPLETED) {
-      return true;
+    // If no pickup time and completed, it's past
+    if (!booking.pickupTime) {
+      return booking.status === BookingStatus.COMPLETED;
     }
-
-    // Include CANCELLED bookings only if pickup time has passed
-    if (
-      booking.status === BookingStatus.CANCELLED &&
-      booking.pickupTime &&
-      new Date(booking.pickupTime) <= now
-    ) {
-      return true;
-    }
-
-    // Include CANCELLED bookings without pickup time
-    if (booking.status === BookingStatus.CANCELLED && !booking.pickupTime) {
-      return true;
-    }
-
-    return false;
+    // Past if pickup time has passed
+    return new Date(booking.pickupTime) <= now;
   });
 
   return (
@@ -91,14 +65,14 @@ export default function BookingsPage() {
               className="flex items-center gap-2 text-sm"
             >
               <Clock className="w-4 h-4" />
-              Mevcut ({activeBookings.length})
+              Mevcut {!isLoading && `(${activeBookings.length})`}
             </TabsTrigger>
             <TabsTrigger
               value="past"
               className="flex items-center gap-2 text-sm"
             >
               <History className="w-4 h-4" />
-              Geçmiş ({pastBookings.length})
+              Geçmiş {!isLoading && `(${pastBookings.length})`}
             </TabsTrigger>
           </TabsList>
 

@@ -20,7 +20,12 @@ interface BookingCardProps {
   booking: Booking;
 }
 
-const getStatusColor = (status: BookingStatus) => {
+const getStatusColor = (status: BookingStatus, isPastPending: boolean) => {
+  // If it's a past pending booking, show as not picked up (red)
+  if (isPastPending) {
+    return "bg-red-100 text-red-800 border-red-200";
+  }
+
   switch (status) {
     case BookingStatus.PENDING:
       return "bg-yellow-100 text-yellow-800 border-yellow-200";
@@ -35,7 +40,12 @@ const getStatusColor = (status: BookingStatus) => {
   }
 };
 
-const getStatusIcon = (status: BookingStatus) => {
+const getStatusIcon = (status: BookingStatus, isPastPending: boolean) => {
+  // If it's a past pending booking, show X icon
+  if (isPastPending) {
+    return <XCircle className="w-4 h-4" />;
+  }
+
   switch (status) {
     case BookingStatus.PENDING:
       return <Clock className="w-4 h-4" />;
@@ -50,7 +60,12 @@ const getStatusIcon = (status: BookingStatus) => {
   }
 };
 
-const getStatusText = (status: BookingStatus) => {
+const getStatusText = (status: BookingStatus, isPastPending: boolean) => {
+  // If it's a past pending booking, show as not picked up
+  if (isPastPending) {
+    return "Teslim Alınmadı";
+  }
+
   switch (status) {
     case BookingStatus.PENDING:
       return "Bekleniyor";
@@ -114,6 +129,15 @@ export const BookingCard = ({ booking }: BookingCardProps) => {
     expired: boolean;
   } | null>(null);
 
+  // Check if this is a past pending booking (pending/confirmed but deadline passed)
+  const now = new Date();
+  const isPastPending = Boolean(
+    (booking.status === BookingStatus.PENDING ||
+      booking.status === BookingStatus.CONFIRMED) &&
+      booking.pickupTime &&
+      new Date(booking.pickupTime) <= now
+  );
+
   useEffect(() => {
     if (
       booking.pickupTime &&
@@ -142,11 +166,14 @@ export const BookingCard = ({ booking }: BookingCardProps) => {
           <div className="absolute top-3 right-3 z-10">
             <Badge
               className={`${getStatusColor(
-                booking.status
+                booking.status,
+                isPastPending
               )} font-medium px-3 py-1.5 text-sm shadow-md`}
             >
-              {getStatusIcon(booking.status)}
-              <span className="ml-1.5">{getStatusText(booking.status)}</span>
+              {getStatusIcon(booking.status, isPastPending)}
+              <span className="ml-1.5">
+                {getStatusText(booking.status, isPastPending)}
+              </span>
             </Badge>
           </div>
 
