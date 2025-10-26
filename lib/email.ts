@@ -12,7 +12,7 @@ export async function sendPasswordResetEmail(
 
   try {
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL!,
+      from: `EatUp <${process.env.RESEND_FROM_EMAIL!}>`,
       to: email,
       subject: "Şifre Sıfırlama Talebi - EatUP",
       react: ResetPasswordTemplate({ resetUrl }),
