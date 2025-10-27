@@ -15,8 +15,9 @@ export async function GET(
       );
     }
 
-    const organization = await prisma.organization.findFirst({
-      where: { ownerId: organizationId },
+    // Verify organization exists
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
       select: { id: true },
     });
 
@@ -28,7 +29,7 @@ export async function GET(
     }
 
     const result = await getOfferings(
-      { organizationId: organization.id },
+      { organizationId },
       { limit: 100, offset: 0 }
     );
 

@@ -24,6 +24,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { BookingStatus } from "@/generated/prisma";
 import { Booking } from "../_services/bookings-service";
@@ -200,6 +201,9 @@ export const BookingDetailDialog = ({
             <DialogTitle className="text-2xl font-bold text-gray-900">
               {booking.offering.name}
             </DialogTitle>
+            <DialogDescription>
+              Rezervasyon detayları ve durum bilgisi
+            </DialogDescription>
           </DialogHeader>
 
           {/* Booking Info Grid */}
@@ -303,10 +307,10 @@ export const BookingDetailDialog = ({
                   </div>
                 )}
 
-                {booking.offering.organization.locationName && (
+                {booking.offering.organization.location && (
                   <Link
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      booking.offering.organization.locationName
+                      booking.offering.organization.location
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -316,7 +320,7 @@ export const BookingDetailDialog = ({
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-gray-500">Konum</p>
                       <p className="font-medium text-gray-900 group-hover:text-blue-600 truncate">
-                        {booking.offering.organization.locationName}
+                        {booking.offering.organization.location}
                       </p>
                     </div>
                     <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />

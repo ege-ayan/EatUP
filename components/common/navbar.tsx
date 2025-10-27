@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useUserStore } from "@/components/providers/user-store";
+import { UserRole } from "@/generated/prisma";
 
 export default function Navbar() {
   const router = useRouter();
@@ -35,12 +36,12 @@ export default function Navbar() {
 
   const getHomeLink = () => {
     if (!user) return "/home";
-    return user.role === "CUSTOMER" ? "/customer/home" : "/organization/home";
+    return user.role === UserRole.CUSTOMER ? "/customer/home" : "/organization/home";
   };
 
   const getBookingsLink = () => {
     if (!user) return "/bookings";
-    return user.role === "CUSTOMER"
+    return user.role === UserRole.CUSTOMER
       ? "/customer/bookings"
       : "/organization/bookings";
   };
@@ -71,15 +72,19 @@ export default function Navbar() {
                   forceMount
                   sideOffset={8}
                 >
-                  <DropdownMenuItem
-                    className="cursor-pointer p-3 rounded-md hover:bg-green-50 transition-colors duration-150 focus:bg-green-50 focus:text-green-700"
-                    onClick={() => router.push(getBookingsLink())}
-                  >
-                    <User className="w-4 h-4 mr-3 text-green-600" />
-                    <span className="font-medium">Rezervasyonlarım</span>
-                  </DropdownMenuItem>
+                  {user.role !== UserRole.ADMIN && (
+                    <>
+                      <DropdownMenuItem
+                        className="cursor-pointer p-3 rounded-md hover:bg-green-50 transition-colors duration-150 focus:bg-green-50 focus:text-green-700"
+                        onClick={() => router.push(getBookingsLink())}
+                      >
+                        <User className="w-4 h-4 mr-3 text-green-600" />
+                        <span className="font-medium">Rezervasyonlarım</span>
+                      </DropdownMenuItem>
 
-                  <DropdownMenuSeparator className="my-2" />
+                      <DropdownMenuSeparator className="my-2" />
+                    </>
+                  )}
 
                   <DropdownMenuItem
                     className="cursor-pointer p-3 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-150 focus:bg-red-50 focus:text-red-700"

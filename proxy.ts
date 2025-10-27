@@ -6,6 +6,7 @@ import {
   authPageRoutes,
   customerHomeRoutes,
   organizationHomeRoutes,
+  adminHomeRoutes,
   UserRole,
 } from "@/lib/guards";
 
@@ -36,6 +37,10 @@ export async function proxy(request: NextRequest) {
         const homeUrl = new URL(organizationHomeRoutes, request.url);
         return NextResponse.redirect(homeUrl);
       }
+      if (role === UserRole.ADMIN) {
+        const homeUrl = new URL(adminHomeRoutes, request.url);
+        return NextResponse.redirect(homeUrl);
+      }
     }
 
     if (pathname === "/") {
@@ -47,6 +52,41 @@ export async function proxy(request: NextRequest) {
         const homeUrl = new URL(organizationHomeRoutes, request.url);
         return NextResponse.redirect(homeUrl);
       }
+      if (role === UserRole.ADMIN) {
+        const homeUrl = new URL(adminHomeRoutes, request.url);
+        return NextResponse.redirect(homeUrl);
+      }
+    }
+
+    if (pathname.startsWith("/admin") && role !== UserRole.ADMIN) {
+      const homeUrl = new URL(
+        role === UserRole.CUSTOMER
+          ? customerHomeRoutes
+          : organizationHomeRoutes,
+        request.url
+      );
+      return NextResponse.redirect(homeUrl);
+    }
+
+    if (
+      pathname.startsWith("/organization") &&
+      role !== UserRole.ORGANIZATION
+    ) {
+      const homeUrl = new URL(
+        role === UserRole.CUSTOMER ? customerHomeRoutes : adminHomeRoutes,
+        request.url
+      );
+      return NextResponse.redirect(homeUrl);
+    }
+
+    if (pathname.startsWith("/customer") && role !== UserRole.CUSTOMER) {
+      const homeUrl = new URL(
+        role === UserRole.ORGANIZATION
+          ? organizationHomeRoutes
+          : adminHomeRoutes,
+        request.url
+      );
+      return NextResponse.redirect(homeUrl);
     }
 
     return NextResponse.next();

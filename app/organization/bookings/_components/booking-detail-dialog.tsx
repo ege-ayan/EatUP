@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { OrganizationBooking } from "../_services/bookings-service";
 
@@ -87,12 +88,15 @@ export const BookingDetailDialog = ({
             <Badge
               className={`${getStatusColor(
                 booking.status
-              )} font-semibold px-4 py-2`}
+              )} px-3 py-1 text-white`}
             >
               {getStatusIcon(booking.status)}
               <span className="ml-2">{getStatusText(booking.status)}</span>
             </Badge>
           </div>
+          <DialogDescription>
+            Rezervasyon bilgileri ve müşteri detayları
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">

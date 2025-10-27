@@ -1,6 +1,6 @@
 import Navbar from "@/components/common/navbar";
 
-export default function OrganizationLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;

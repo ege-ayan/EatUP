@@ -12,9 +12,6 @@ import Swal from "sweetalert2";
 export default function OrganizationHomePage() {
   const user = useUserStore((state) => state.user);
 
-  // For now, we'll use a hardcoded organization ID since we don't have
-  // the organization relationship set up in the user store
-  // In a real app, you'd get this from the user.organizationId
   const organizationId = user?.id || "";
 
   const {
@@ -32,9 +29,10 @@ export default function OrganizationHomePage() {
       text: `"${name}" ürünü kalıcı olarak silinecektir.`,
       icon: "warning",
       showCancelButton: true,
+      reverseButtons: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
-      confirmButtonText: "Evet, sil",
+      confirmButtonText: "Evet",
       cancelButtonText: "İptal",
     });
 

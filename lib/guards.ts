@@ -27,6 +27,7 @@ export const authPageRoutes = [
 
 export const customerHomeRoutes = "/customer/home";
 export const organizationHomeRoutes = "/organization/home";
+export const adminHomeRoutes = "/admin/home";
 
 export async function getCurrentUserRole() {
   const cookieStore = await cookies();

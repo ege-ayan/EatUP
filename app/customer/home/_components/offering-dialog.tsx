@@ -26,6 +26,7 @@ import { Offering } from "../_services/offerings-service";
 import { useCreateBooking } from "../_hooks/use-create-booking";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
+import Link from "next/link";
 
 interface OfferingDialogProps {
   offering: Offering;
@@ -152,8 +153,8 @@ export const OfferingDialog = ({
         <DialogHeader className="sr-only">
           <DialogTitle>{offering.name}</DialogTitle>
           <DialogDescription>
-            {offering.category.name} • {offering.organization.name} • ₺
-            {offering.price.toFixed(2)}
+            {offering.description ||
+              `${offering.category.name} ürünü - ${offering.organization.name}`}
           </DialogDescription>
         </DialogHeader>
 
@@ -181,9 +182,9 @@ export const OfferingDialog = ({
         {/* Content Section */}
         <div className="p-6 space-y-6">
           {/* Title and Restaurant with Stock */}
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 break-words">
                 {offering.name}
               </h2>
               <div className="flex items-center text-gray-600">
@@ -191,16 +192,16 @@ export const OfferingDialog = ({
                 <span>{offering.organization.name}</span>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-1">
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
               <div
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${getStockColor(
+                className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg ${getStockColor(
                   offering.stock
-                )} text-white font-medium text-sm`}
+                )} text-white font-medium text-xs sm:text-sm`}
               >
-                <Package className="w-4 h-4" />
-                <span>{offering.stock} adet</span>
+                <Package className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="whitespace-nowrap">{offering.stock} adet</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <div className="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap">
                 <Users className="w-3 h-3" />
                 <span>Max {offering.maxReservationPerCustomer}/kişi</span>
               </div>
@@ -215,10 +216,10 @@ export const OfferingDialog = ({
           )}
 
           {/* Info Grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <a
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Link
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                offering.organization.locationName
+                offering.organization.location
               )}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -228,11 +229,11 @@ export const OfferingDialog = ({
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-gray-500 mb-0.5">Konum</p>
                 <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600">
-                  {offering.organization.locationName}
+                  {offering.organization.location}
                 </p>
               </div>
               <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
-            </a>
+            </Link>
 
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               <Clock className="w-5 h-5 text-gray-600 flex-shrink-0" />
@@ -262,7 +263,7 @@ export const OfferingDialog = ({
           )}
 
           {/* Price and Action Row */}
-          <div className="flex items-end justify-between gap-4 pt-4 border-t mt-4">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pt-4 border-t mt-4">
             {/* Price Section */}
             <div>
               <p className="text-sm text-gray-500 mb-1">Toplam Fiyat</p>
@@ -277,7 +278,7 @@ export const OfferingDialog = ({
             </div>
 
             {/* Quantity Selector and Reserve Button */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 justify-between sm:justify-end">
               {/* Quantity Selector */}
               <div className="flex items-center gap-2">
                 <Button
@@ -322,7 +323,7 @@ export const OfferingDialog = ({
                 disabled={
                   offering.stock === 0 || createBookingMutation.isPending
                 }
-                className="h-12 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-12 px-4 sm:px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
               >
                 {createBookingMutation.isPending ? (
                   <span className="flex items-center gap-2">

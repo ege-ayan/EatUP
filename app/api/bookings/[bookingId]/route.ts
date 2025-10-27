@@ -50,14 +50,14 @@ export async function PATCH(
 
     // Check authorization
     // Customers can update their own bookings
-    // Organizations can update bookings for their offerings
+    // Organization users can update bookings for their organization's offerings
     const isCustomer =
       user.role === "CUSTOMER" && existingBooking.userId === user.id;
-    const isOrganizationOwner =
+    const isOrganizationUser =
       user.role === "ORGANIZATION" &&
-      existingBooking.offering.organization.ownerId === user.id;
+      user.organizationId === existingBooking.offering.organizationId;
 
-    if (!isCustomer && !isOrganizationOwner) {
+    if (!isCustomer && !isOrganizationUser) {
       return NextResponse.json(
         { error: "You don't have permission to update this booking" },
         { status: 403 }

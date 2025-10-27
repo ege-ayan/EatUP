@@ -223,7 +223,7 @@ export default function HomePage() {
                     <OfferingCard
                       key={offering.id}
                       offering={offering}
-                      priority={index < 6}
+                      priority={index < 9}
                     />
                   ))
                 )}

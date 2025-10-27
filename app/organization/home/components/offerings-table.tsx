@@ -142,16 +142,16 @@ export function OfferingsTable({
         return (
           <>
             {originalPrice && originalPrice > price ? (
-              <div className="flex pl-3 flex-col">
-                <span className="font-semibold text-green-600">
-                  ₺{price.toFixed(2)}
-                </span>
+              <div className="flex flex-col pl-4">
                 <span className="text-sm text-gray-500 line-through">
                   ₺{originalPrice.toFixed(2)}
                 </span>
+                <span className="font-semibold text-green-600">
+                  ₺{price.toFixed(2)}
+                </span>
               </div>
             ) : (
-              <span className="font-semibold">₺{price.toFixed(2)}</span>
+              <span className="font-semibold pl-4">₺{price.toFixed(2)}</span>
             )}
           </>
         );
@@ -191,18 +191,6 @@ export function OfferingsTable({
               {stock}
             </span>
           </>
-        );
-      },
-    },
-    {
-      accessorKey: "isAvailable",
-      header: "Durum",
-      cell: ({ row }) => {
-        const isAvailable = row.getValue("isAvailable") as boolean;
-        return (
-          <Badge variant={isAvailable ? "default" : "secondary"}>
-            {isAvailable ? "Aktif" : "Pasif"}
-          </Badge>
         );
       },
     },
@@ -358,7 +346,7 @@ export function OfferingsTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} className="h-20 hover:bg-gray-50">
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="align-middle">
+                    <TableCell key={cell.id} className="align-middle overflow-y-auto">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

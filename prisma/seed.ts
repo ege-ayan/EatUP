@@ -257,142 +257,128 @@ async function main() {
       ownerName: "Ahmet",
       ownerSurname: "Yılmaz",
       ownerEmail: "ahmet.yilmaz@simitsarayi.com",
-      category: "Kafeterya",
     },
     {
       name: "Çorba Evi",
       ownerName: "Mehmet",
       ownerSurname: "Kaya",
       ownerEmail: "mehmet.kaya@corbaevi.com",
-      category: "Restoran",
     },
     {
       name: "Kahve Köşesi",
       ownerName: "Ayşe",
       ownerSurname: "Demir",
       ownerEmail: "ayse.demir@kahvekosesi.com",
-      category: "Kafeterya",
     },
     {
       name: "Lezzet Durağı",
       ownerName: "Fatma",
       ownerSurname: "Çelik",
       ownerEmail: "fatma.celik@lezzetduragi.com",
-      category: "Restoran",
     },
     {
       name: "Taze Yemek",
       ownerName: "Ali",
       ownerSurname: "Şahin",
       ownerEmail: "ali.sahin@tazeyemek.com",
-      category: "Restoran",
     },
     {
       name: "Campus Cafe",
       ownerName: "Zeynep",
       ownerSurname: "Yıldız",
       ownerEmail: "zeynep.yildiz@campuscafe.com",
-      category: "Kafeterya",
     },
     {
       name: "Öğrenci Kantini",
       ownerName: "Emre",
       ownerSurname: "Koç",
       ownerEmail: "emre.koc@ogrencikantini.com",
-      category: "Kafeterya",
     },
     {
       name: "Yemekhane",
       ownerName: "Deniz",
       ownerSurname: "Öztürk",
       ownerEmail: "deniz.ozturk@yemekhane.com",
-      category: "Restoran",
     },
     {
       name: "Fast Food",
       ownerName: "Can",
       ownerSurname: "Aydın",
       ownerEmail: "can.aydin@fastfood.com",
-      category: "Restoran",
     },
     {
       name: "Healthy Bites",
       ownerName: "Ece",
       ownerSurname: "Güneş",
       ownerEmail: "ece.gunes@healthybites.com",
-      category: "Kafeterya",
     },
     {
       name: "Tatlı Dünyası",
       ownerName: "Burak",
       ownerSurname: "Arslan",
       ownerEmail: "burak.arslan@tatlidunyasi.com",
-      category: "Kafeterya",
     },
     {
       name: "Çay Bahçesi",
       ownerName: "Selin",
       ownerSurname: "Polat",
       ownerEmail: "selin.polat@caybahcesi.com",
-      category: "Kafeterya",
     },
     {
       name: "Kafeterya",
       ownerName: "Kerem",
       ownerSurname: "Kara",
       ownerEmail: "kerem.kara@kafeterya.com",
-      category: "Kafeterya",
     },
     {
       name: "Restoran",
       ownerName: "Elif",
       ownerSurname: "Aksoy",
       ownerEmail: "elif.aksoy@restoran.com",
-      category: "Restoran",
     },
     {
       name: "Bistro",
       ownerName: "Mert",
       ownerSurname: "Erdoğan",
       ownerEmail: "mert.erdogan@bistro.com",
-      category: "Restoran",
     },
   ];
 
   const organizations = [];
+  const organizationUsers = [];
+  
   for (let i = 0; i < organizationData.length; i++) {
     const orgData = organizationData[i];
+    
+    // Create organization first
     const org = await prisma.organization.create({
       data: {
         name: orgData.name,
-        location: `39.${8912 + Math.floor(Math.random() * 100)},32.${
-          7857 + Math.floor(Math.random() * 100)
-        }`,
-        locationName: getRandomElement(locations),
-        category: orgData.category,
+        location: getRandomElement(locations),
         description: `${orgData.name} - ${getRandomElement(descriptions)}`,
         phone: `+90 312 210 ${String(1000 + i).padStart(4, "0")}`,
         email: `info@${orgData.name.toLowerCase().replace(/\s+/g, "")}.com`,
         website: `https://${orgData.name.toLowerCase().replace(/\s+/g, "")}.com`,
-        owner: {
-          create: {
-            name: orgData.ownerName,
-            surname: orgData.ownerSurname,
-            email: orgData.ownerEmail,
-            password:
-              "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
-            role: "ORGANIZATION",
-          },
-        },
-      },
-      include: {
-        owner: true,
       },
     });
     organizations.push(org);
+    
+    // Create user for this organization
+    const user = await prisma.user.create({
+      data: {
+        name: orgData.ownerName,
+        surname: orgData.ownerSurname,
+        email: orgData.ownerEmail,
+        password: "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
+        role: "ORGANIZATION",
+        organizationId: org.id,
+      },
+    });
+    organizationUsers.push(user);
   }
 
   console.log("✅ Organizations created:", organizations.length);
+  console.log("✅ Organization users created:", organizationUsers.length);
 
   // Create offerings (50 is sufficient for testing)
   console.log("🏭 Generating offerings...");
@@ -444,12 +430,52 @@ async function main() {
 
   // Create sample users
   const users = await Promise.all([
-    // Admin user
+    // Admin users
     prisma.user.create({
       data: {
         name: "Admin",
         surname: "User",
         email: "admin@eatup.com",
+        password:
+          "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
+        role: "ADMIN",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        name: "Ege",
+        surname: "Ayan",
+        email: "ege.ayan@eatup.com",
+        password:
+          "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
+        role: "ADMIN",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        name: "Super",
+        surname: "Admin",
+        email: "superadmin@eatup.com",
+        password:
+          "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
+        role: "ADMIN",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        name: "System",
+        surname: "Manager",
+        email: "manager@eatup.com",
+        password:
+          "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
+        role: "ADMIN",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        name: "Test",
+        surname: "Admin",
+        email: "testadmin@eatup.com",
         password:
           "$2b$10$9Xj/7lL0esjDzqNxjKU0KOpQ8vqTtuQ7tDmEKDt1nTa7PTr3DZCyK", // password
         role: "ADMIN",

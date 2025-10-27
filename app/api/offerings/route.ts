@@ -57,19 +57,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let organization = await prisma.organization.findUnique({
+    const organization = await prisma.organization.findUnique({
       where: { id: validatedData.organizationId },
     });
-
-    if (!organization) {
-      organization = await prisma.organization.findFirst({
-        where: { ownerId: validatedData.organizationId },
-      });
-    }
-
-    if (!organization) {
-      organization = await prisma.organization.findFirst();
-    }
 
     if (!organization) {
       return NextResponse.json(
@@ -105,9 +95,7 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            locationName: true,
-            category: true,
-            image: true,
+            location: true,
           },
         },
       },
@@ -135,9 +123,7 @@ export async function POST(request: NextRequest) {
       organization: {
         id: offering.organization.id,
         name: offering.organization.name,
-        locationName: offering.organization.locationName,
-        category: offering.organization.category,
-        image: offering.organization.image,
+        location: offering.organization.location,
       },
       createdAt: offering.createdAt.toISOString(),
       updatedAt: offering.updatedAt.toISOString(),
@@ -241,9 +227,7 @@ export async function PUT(request: NextRequest) {
       organization: {
         id: offering.organization.id,
         name: offering.organization.name,
-        locationName: offering.organization.locationName,
-        category: offering.organization.category,
-        image: offering.organization.image,
+        location: offering.organization.location,
       },
       createdAt: offering.createdAt.toISOString(),
       updatedAt: offering.updatedAt.toISOString(),

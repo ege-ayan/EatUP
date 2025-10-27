@@ -10,18 +10,19 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  surname      String
-  email        String   @unique
-  password     String
-  role         UserRole @default(CUSTOMER)
-  organization  Organization? @relation("OrganizationOwner")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                    String        @id @default(cuid())
+  name                  String
+  surname               String
+  email                 String        @unique
+  password              String
+  role                  UserRole      @default(CUSTOMER)
+  organizationId        String?
+  organization          Organization? @relation("OrganizationUsers", fields: [organizationId], references: [id], onDelete: SetNull)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
   // Relations
-  bookings     Booking[]
+  bookings              Booking[]
 }
 
 enum UserRole {
@@ -52,20 +53,16 @@ model Category {
 model Organization {
   id           String   @id @default(cuid())
   name         String
-  location     String
-  locationName String
-  category     String
+  location     String   
   description  String?
-  image        String?
   phone        String?
   email        String?
   website      String?
-  isActive     Boolean  @default(true)
-  ownerId      String   @unique
-  owner        User     @relation("OrganizationOwner", fields: [ownerId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Relations
+  users        User[]   @relation("OrganizationUsers")
   offerings    Offering[]
 }
 

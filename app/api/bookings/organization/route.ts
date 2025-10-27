@@ -10,12 +10,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get the organization owned by this user
-    const organization = await prisma.organization.findUnique({
-      where: { ownerId: user.id },
-    });
-
-    if (!organization) {
+    // Check if user belongs to an organization
+    if (!user.organizationId) {
       return NextResponse.json(
         { error: "Organization not found" },
         { status: 404 }
@@ -34,7 +30,7 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: any = {
       offering: {
-        organizationId: organization.id,
+        organizationId: user.organizationId,
       },
     };
 
