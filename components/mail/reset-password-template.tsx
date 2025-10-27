@@ -1,14 +1,3 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Hr,
-  Html,
-  Section,
-  Text,
-} from "@react-email/components";
-
 interface ResetPasswordTemplateProps {
   resetUrl: string;
 }
@@ -17,62 +6,58 @@ export function ResetPasswordTemplate({
   resetUrl,
 }: ResetPasswordTemplateProps) {
   return (
-    <Html>
-      <Head />
-      <Body style={main}>
-        <Container style={container}>
-          {/* Header */}
-          <Section style={header}>
-            <Text style={headerText}>
-              Eat<span style={headerTextOrange}>UP</span>
-            </Text>
-          </Section>
+    <div style={main}>
+      <div style={container}>
+        {/* Header */}
+        <div style={header}>
+          <h1 style={headerText}>
+            Eat<span style={headerTextOrange}>UP</span>
+          </h1>
+        </div>
 
-          {/* Content */}
-          <Section style={content}>
-            <Text style={title}>Şifre Sıfırlama Talebi</Text>
+        {/* Content */}
+        <div style={content}>
+          <h2 style={title}>Şifre Sıfırlama Talebi</h2>
 
-            <Text style={paragraph}>Merhaba,</Text>
+          <p style={paragraph}>Merhaba,</p>
 
-            <Text style={paragraph}>
-              Hesabınız için bir şifre sıfırlama talebi aldık. Şifrenizi
-              sıfırlamak için aşağıdaki butona tıklayın:
-            </Text>
+          <p style={paragraph}>
+            Hesabınız için bir şifre sıfırlama talebi aldık. Şifrenizi
+            sıfırlamak için aşağıdaki butona tıklayın:
+          </p>
 
-            <Section style={buttonContainer}>
-              <Button style={button} href={resetUrl}>
-                Şifremi Sıfırla
-              </Button>
-            </Section>
+          <div style={buttonContainer}>
+            <a style={button} href={resetUrl}>
+              Şifremi Sıfırla
+            </a>
+          </div>
 
-            <Text style={paragraphSmall}>
-              Ya da aşağıdaki bağlantıyı tarayıcınıza kopyalayın:
-            </Text>
+          <p style={paragraphSmall}>
+            Ya da aşağıdaki bağlantıyı tarayıcınıza kopyalayın:
+          </p>
 
-            <Text style={urlText}>{resetUrl}</Text>
+          <p style={urlText}>{resetUrl}</p>
 
-            <Section style={warningBox}>
-              <Text style={warningText}>
-                ⚠️ Bu bağlantı <strong>1 saat</strong> geçerlidir.
-              </Text>
-            </Section>
+          <div style={warningBox}>
+            <p style={warningText}>
+              ⚠️ Bu bağlantı <strong>1 saat</strong> geçerlidir.
+            </p>
+          </div>
 
-            <Text style={paragraphSmall}>
-              Bu talebi siz yapmadıysanız, bu e-postayı görmezden
-              gelebilirsiniz. Şifreniz değiştirilmeyecektir.
-            </Text>
+          <p style={paragraphSmall}>
+            Bu talebi siz yapmadıysanız, bu e-postayı görmezden gelebilirsiniz.
+            Şifreniz değiştirilmeyecektir.
+          </p>
 
-            <Hr style={hr} />
+          <hr style={hr} />
 
-            <Text style={footer}>© 2025 EatUP. Tüm hakları saklıdır.</Text>
-          </Section>
-        </Container>
-      </Body>
-    </Html>
+          <p style={footer}>© 2025 EatUP. Tüm hakları saklıdır.</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
-// Styles
 const main = {
   backgroundColor: "#f9fafb",
   fontFamily: "Arial, sans-serif",
