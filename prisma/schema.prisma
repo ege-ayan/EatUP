@@ -10,16 +10,17 @@ datasource db {
 }
 
 model User {
-  id                    String        @id @default(cuid())
+  id                    String                  @id @default(cuid())
   name                  String
   surname               String
-  email                 String        @unique
+  email                 String                  @unique
   password              String
-  role                  UserRole      @default(CUSTOMER)
+  role                  UserRole                @default(CUSTOMER)
+  emailConfirmationStatus UserConfirmationStatus @default(PENDING)
   organizationId        String?
-  organization          Organization? @relation("OrganizationUsers", fields: [organizationId], references: [id], onDelete: SetNull)
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  organization          Organization?           @relation("OrganizationUsers", fields: [organizationId], references: [id], onDelete: SetNull)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
 
   // Relations
   bookings              Booking[]
@@ -29,6 +30,11 @@ enum UserRole {
   CUSTOMER
   ORGANIZATION
   ADMIN
+}
+
+enum UserConfirmationStatus {
+  PENDING
+  CONFIRMED
 }
 
 enum BookingStatus {

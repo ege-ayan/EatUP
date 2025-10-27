@@ -2,6 +2,7 @@ import * as bcrypt from "bcrypt";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
+import { sendUserConfirmationEmail } from "./user-confirmation";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = "30d";
@@ -20,6 +21,13 @@ export async function validateCredentials(email: string, password: string) {
 
     if (!isPasswordValid) {
       throw new Error("Geçersiz e-posta veya şifre");
+    }
+
+    // Check if email is confirmed
+    if (user.emailConfirmationStatus !== "CONFIRMED") {
+      throw new Error(
+        "E-posta adresiniz henüz onaylanmamış. Lütfen e-postanızı kontrol edin veya yeni bir onay e-postası talep edin."
+      );
     }
 
     return {
@@ -94,17 +102,33 @@ export async function register(data: {
         surname: data.surname,
         email: data.email,
         password: hashedPassword,
+        emailConfirmationStatus: "PENDING",
       },
       select: {
         id: true,
         name: true,
         surname: true,
         email: true,
+        emailConfirmationStatus: true,
         createdAt: true,
       },
     });
 
-    return { success: true, user };
+    // Send confirmation email
+    try {
+      await sendUserConfirmationEmail(user.id, user.email, user.name);
+    } catch (emailError) {
+      console.error("Failed to send confirmation email:", emailError);
+      // Don't fail registration if email sending fails
+      // User can request a new confirmation email later
+    }
+
+    return {
+      success: true,
+      user,
+      message:
+        "Kayıt başarılı! Lütfen e-posta adresinizi onaylamak için gelen kutunuzu kontrol edin.",
+    };
   } catch (error) {
     console.error("Kayıt hatası:", error);
     throw error;

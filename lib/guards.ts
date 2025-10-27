@@ -16,6 +16,8 @@ export const publicApiRoutes = [
   "/api/auth/me",
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
+  "/api/auth/confirm-email",
+  "/api/auth/resend-confirmation",
 ];
 
 export const authPageRoutes = [
@@ -23,6 +25,7 @@ export const authPageRoutes = [
   "/auth/register",
   "/auth/forgot-password",
   "/auth/reset-password",
+  "/auth/confirm-email",
 ];
 
 export const customerHomeRoutes = "/customer/home";

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AxiosError } from "axios";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,11 +23,14 @@ import { useLogin } from "../_hooks/use-login";
 
 import Link from "next/link";
 import { loginSchema } from "@/schemas/auth-schemas";
+import axios from "axios";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const { mutate: login, isPending, error } = useLogin();
 
   const form = useForm<LoginFormValues>({
@@ -39,8 +42,33 @@ function LoginForm() {
   });
 
   const onSubmit = (values: LoginFormValues) => {
+    setResendSuccess(false);
     login({ email: values.email, password: values.password });
   };
+
+  const handleResendEmail = async () => {
+    const email = form.getValues("email");
+    if (!email) return;
+
+    setIsResendingEmail(true);
+    setResendSuccess(false);
+
+    try {
+      await axios.post("/api/auth/resend-confirmation", { email });
+      setResendSuccess(true);
+    } catch (err) {
+      console.error("Resend email error:", err);
+    } finally {
+      setIsResendingEmail(false);
+    }
+  };
+
+  const isEmailNotConfirmedError =
+    error &&
+    (error.message?.includes("henüz onaylanmamış") ||
+      (error as AxiosError<{ error?: string }>)?.response?.data?.error?.includes(
+        "henüz onaylanmamış"
+      ));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-orange-50">
@@ -138,11 +166,41 @@ function LoginForm() {
                   </div>
 
                   {error && (
-                    <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
-                      {(error as AxiosError<{ error?: string }>)?.response?.data
-                        ?.error ||
-                        error.message ||
-                        "Giriş yapılamadı. Lütfen bilgilerinizi kontrol ediniz."}
+                    <div className="space-y-3">
+                      <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+                        {(error as AxiosError<{ error?: string }>)?.response?.data
+                          ?.error ||
+                          error.message ||
+                          "Giriş yapılamadı. Lütfen bilgilerinizi kontrol ediniz."}
+                      </div>
+                      
+                      {isEmailNotConfirmedError && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleResendEmail}
+                          disabled={isResendingEmail}
+                          className="w-full"
+                        >
+                          {isResendingEmail ? (
+                            <div className="flex items-center gap-2">
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                              Gönderiliyor...
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4" />
+                              Onay E-postasını Tekrar Gönder
+                            </div>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {resendSuccess && (
+                    <div className="text-sm text-green-600 bg-green-50 border border-green-200 rounded-md p-3">
+                      ✓ Onay e-postası tekrar gönderildi! Lütfen e-postanızı kontrol edin.
                     </div>
                   )}
 
