@@ -6,61 +6,130 @@ export function ResetPasswordTemplate({
   resetUrl,
 }: ResetPasswordTemplateProps) {
   return (
-    <div style={main}>
-      <div style={container}>
-        {/* Header */}
-        <div style={header}>
-          <h1 style={headerText}>
-            Eat<span style={headerTextOrange}>UP</span>
-          </h1>
-        </div>
+    <html lang="tr" dir="ltr">
+      <head>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </head>
+      <body style={main}>
+        <table
+          align="center"
+          width="100%"
+          border={0}
+          cellPadding="0"
+          cellSpacing="0"
+          role="presentation"
+          style={tableWrapper}
+        >
+          <tbody>
+            <tr>
+              <td>
+                <table
+                  align="center"
+                  width="100%"
+                  border={0}
+                  cellPadding="0"
+                  cellSpacing="0"
+                  role="presentation"
+                  style={container}
+                >
+                  <tbody>
+                    <tr>
+                      <td>
+                        {/* Header */}
+                        <table width="100%" border={0} cellPadding="0" cellSpacing="0">
+                          <tbody>
+                            <tr>
+                              <td style={header}>
+                                <h1 style={headerText}>
+                                  Eat<span style={headerTextOrange}>UP</span>
+                                </h1>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
 
-        {/* Content */}
-        <div style={content}>
-          <h2 style={title}>Şifre Sıfırlama Talebi</h2>
+                        {/* Content */}
+                        <table width="100%" border={0} cellPadding="0" cellSpacing="0">
+                          <tbody>
+                            <tr>
+                              <td style={content}>
+                                <h2 style={title}>Şifre Sıfırlama Talebi</h2>
 
-          <p style={paragraph}>Merhaba,</p>
+                                <p style={paragraph}>Merhaba,</p>
 
-          <p style={paragraph}>
-            Hesabınız için bir şifre sıfırlama talebi aldık. Şifrenizi
-            sıfırlamak için aşağıdaki butona tıklayın:
-          </p>
+                                <p style={paragraph}>
+                                  Hesabınız için bir şifre sıfırlama talebi aldık. Şifrenizi
+                                  sıfırlamak için aşağıdaki butona tıklayın:
+                                </p>
 
-          <div style={buttonContainer}>
-            <a style={button} href={resetUrl}>
-              Şifremi Sıfırla
-            </a>
-          </div>
+                                {/* Button */}
+                                <table width="100%" border={0} cellPadding="0" cellSpacing="0" style={buttonContainer}>
+                                  <tbody>
+                                    <tr>
+                                      <td align="center">
+                                        <a style={button} href={resetUrl} target="_blank" rel="noopener noreferrer">
+                                          Şifremi Sıfırla
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
 
-          <p style={paragraphSmall}>
-            Ya da aşağıdaki bağlantıyı tarayıcınıza kopyalayın:
-          </p>
+                                <p style={paragraphSmall}>
+                                  Ya da aşağıdaki bağlantıyı tarayıcınıza kopyalayın:
+                                </p>
 
-          <p style={urlText}>{resetUrl}</p>
+                                <p style={urlText}>{resetUrl}</p>
 
-          <div style={warningBox}>
-            <p style={warningText}>
-              ⚠️ Bu bağlantı <strong>1 saat</strong> geçerlidir.
-            </p>
-          </div>
+                                {/* Warning Box */}
+                                <table width="100%" border={0} cellPadding="0" cellSpacing="0">
+                                  <tbody>
+                                    <tr>
+                                      <td style={warningBox}>
+                                        <p style={warningText}>
+                                          ⚠️ Bu bağlantı <strong>1 saat</strong> geçerlidir.
+                                        </p>
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
 
-          <p style={paragraphSmall}>
-            Bu talebi siz yapmadıysanız, bu e-postayı görmezden gelebilirsiniz.
-            Şifreniz değiştirilmeyecektir.
-          </p>
+                                <p style={paragraphSmall}>
+                                  Bu talebi siz yapmadıysanız, bu e-postayı görmezden
+                                  gelebilirsiniz. Şifreniz değiştirilmeyecektir.
+                                </p>
 
-          <hr style={hr} />
+                                <hr style={hr} />
 
-          <p style={footer}>© 2025 EatUP. Tüm hakları saklıdır.</p>
-        </div>
-      </div>
-    </div>
+                                <p style={footer}>© 2025 EatUP. Tüm hakları saklıdır.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </body>
+    </html>
   );
 }
 
 const main = {
   backgroundColor: "#f9fafb",
   fontFamily: "Arial, sans-serif",
+  margin: "0",
+  padding: "0",
+};
+
+const tableWrapper = {
+  maxWidth: "600px",
+  margin: "0 auto",
 };
 
 const container = {
